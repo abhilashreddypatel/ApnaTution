@@ -1,0 +1,72 @@
+import { Injectable } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { BehaviorSubject, Observable, tap } from 'rxjs';
+import { Router } from '@angular/router';
+import { jwtDecode } from 'jwt-decode';
+
+@Injectable({
+    providedIn: 'root'
+})
+export class AuthService {
+    private apiUrl = 'http://localhost:5000/auth';
+    private tokenKey = 'apna_tution_token';
+
+    private userSubject = new BehaviorSubject<any>(this.getUserFromToken());
+    public user$ = this.userSubject.asObservable();
+
+    constructor(private http: HttpClient, private router: Router) { }
+
+    register(user: any): Observable<any> {
+        return this.http.post(`${this.apiUrl}/register`, user);
+    }
+
+    login(credentials: any): Observable<any> {
+        return this.http.post<{ token: string }>(`${this.apiUrl}/login`, credentials).pipe(
+            tap(response => {
+                this.storeToken(response.token);
+            })
+        );
+    }
+
+    logout() {
+        localStorage.removeItem(this.tokenKey);
+        this.userSubject.next(null);
+        this.router.navigate(['/']);
+    }
+
+    getToken(): string | null {
+        return localStorage.getItem(this.tokenKey);
+    }
+
+    private storeToken(token: string) {
+        localStorage.setItem(this.tokenKey, token);
+        this.userSubject.next(this.getUserFromToken());
+    }
+
+    getUserFromToken(): any {
+        const token = this.getToken();
+        if (!token) return null;
+        try {
+            return jwtDecode(token);
+        } catch (e) {
+            return null;
+        }
+    }
+
+    getRole(): string | null {
+        const user = this.userSubject.value;
+        return user ? user.role : null;
+    }
+
+    isAuthenticated(): boolean {
+        return !!this.getToken();
+    }
+
+    getProfile(): Observable<any> {
+        return this.http.get(`${this.apiUrl}/profile`);
+    }
+
+    updateProfile(userData: any): Observable<any> {
+        return this.http.put(`${this.apiUrl}/profile`, userData);
+    }
+}

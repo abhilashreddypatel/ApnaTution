@@ -1,0 +1,71 @@
+<div class="search-hero">
+    <div class="container text-center animate-fade-in">
+        <h1>Find the Perfect Tutor</h1>
+        <p>Browse through thousands of verified tutors in your area.</p>
+
+        <div class="search-bar">
+            <i class="fa-solid fa-magnifying-glass search-icon"></i>
+            <input type="text" placeholder="Search by Subject, Name or Location..." (input)="onSearch($event)">
+            <button class="btn btn-primary">Search</button>
+        </div>
+    </div>
+</div>
+
+<div class="container main-content">
+    <div class="loading-state" *ngIf="loading">
+        <i class="fa-solid fa-circle-notch fa-spin"></i>
+        <p>Loading Tutors...</p>
+    </div>
+
+    <div class="tutor-grid" *ngIf="!loading">
+        <div class="tutor-card animate-fade-in" *ngFor="let tutor of filteredTutors">
+            <div class="tutor-header">
+                <div class="avatar-placeholder">
+                    {{ tutor.name.charAt(0) }}
+                </div>
+                <div class="tutor-info">
+                    <h3>
+                        {{ tutor.name }}
+                        <i class="fa-solid fa-circle-check verified-icon" *ngIf="tutor.isVerified"
+                            title="Verified Tutor"></i>
+                    </h3>
+                    <p class="tagline">{{ tutor.tagline || 'Experience personalized learning with ' + tutor.name }}</p>
+                    <div class="rating">
+                        <i class="fa-solid fa-star"></i> {{ tutor.rating || '5.0' }} <span>({{ tutor.reviewsCount || 0
+                            }} Reviews)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tutor-details">
+                <div class="detail-item">
+                    <i class="fa-solid fa-location-dot"></i> {{ tutor.location || 'Location not specified' }}
+                </div>
+                <div class="detail-item">
+                    <i class="fa-solid fa-graduation-cap"></i> {{ tutor.experience || 'Not specified' }}
+                </div>
+                <div class="detail-item">
+                    <i class="fa-solid fa-video" *ngIf="tutor.mode === 'ONLINE'"></i>
+                    <i class="fa-solid fa-house" *ngIf="tutor.mode === 'HOME'"></i>
+                    <i class="fa-solid fa-chalkboard-user" *ngIf="tutor.mode === 'BOTH'"></i>
+                    {{ tutor.mode | titlecase }}
+                </div>
+            </div>
+
+            <div class="tutor-subjects">
+                <span class="badge" *ngFor="let sub of tutor.subjects">{{ sub }}</span>
+            </div>
+
+            <div class="tutor-footer">
+                <span class="price">{{ tutor.hourlyRate || 'Contact for price' }}</span>
+                <button class="btn btn-outline" routerLink="/login">Contact</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="no-results" *ngIf="!loading && filteredTutors.length === 0">
+        <i class="fa-regular fa-face-frown"></i>
+        <h3>No tutors found</h3>
+        <p>Try searching for a different subject or location.</p>
+    </div>
+</div>

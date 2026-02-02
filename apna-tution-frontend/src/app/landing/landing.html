@@ -1,0 +1,158 @@
+<div class="landing-wrapper">
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-content container animate-fade-in">
+            <h1 class="hero-title" *ngIf="!userRole">
+                The Smart Way to <br />
+                <span class="text-gradient">Find Your Tutor</span>
+            </h1>
+            <h1 class="hero-title" *ngIf="userRole === 'PARENT'">
+                Unlock Your Child's <br />
+                <span class="text-gradient">Full Potential</span>
+            </h1>
+            <h1 class="hero-title" *ngIf="userRole === 'TUTOR'">
+                Grow Your Teaching <br />
+                <span class="text-gradient">Business Today</span>
+            </h1>
+
+            <p class="hero-subtitle">
+                <span *ngIf="userRole">Welcome back, {{ userName }}! </span>
+                Connect with expert tutors or find eager students in your area.
+                ApnaTution bridges the gap between knowledge and curiosity with a seamless, premium experience.
+            </p>
+
+            <div class="hero-actions">
+                <div *ngIf="userRole">
+                    <a [routerLink]="dashboardLink" class="btn btn-primary btn-glow">
+                        <i class="fa-solid fa-gauge-high"></i> Go to Dashboard
+                    </a>
+                    <a *ngIf="userRole === 'PARENT'" routerLink="/parent/create-lead" class="btn btn-secondary ml-2">
+                        <i class="fa-solid fa-plus"></i> Post New Lead
+                    </a>
+                    <a *ngIf="userRole === 'TUTOR'" routerLink="/tutor/leads" class="btn btn-secondary ml-2">
+                        <i class="fa-solid fa-search"></i> Browse Jobs
+                    </a>
+                </div>
+                <div *ngIf="!userRole">
+                    <a routerLink="/register" class="btn btn-primary btn-glow">
+                        <i class="fa-solid fa-rocket"></i> Get Started
+                    </a>
+                    <a routerLink="/login" class="btn btn-secondary">
+                        <i class="fa-solid fa-right-to-bracket"></i> Login
+                    </a>
+                </div>
+            </div>
+
+            <div class="stats-row animate-delay-2">
+                <div class="stat-item">
+                    <span class="stat-num">{{ stats.tutors || '500' }}+</span>
+                    <span class="stat-desc">Active Tutors</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-num">{{ stats.students || '1000' }}+</span>
+                    <span class="stat-desc">Students</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-num">{{ stats.activeLeads || '100' }}+</span>
+                    <span class="stat-desc">Open Leads</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-visual">
+            <div class="floating-card card-1 glass-panel">
+                <i class="fa-solid fa-book-open"></i>
+                <span>Math Expert</span>
+            </div>
+            <div class="floating-card card-2 glass-panel">
+                <i class="fa-solid fa-flask"></i>
+                <span>Science Pro</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dynamic Section: Recent Leads for Tutors/Guests -->
+    <section class="container mt-4 mb-4" *ngIf="userRole !== 'PARENT' && leads.length > 0">
+        <div class="section-header text-center mb-2">
+            <h2>Recent Tuition Jobs</h2>
+            <p>Fresh opportunities posted by parents near you.</p>
+        </div>
+        <div class="leads-grid">
+            <div class="lead-card glass-panel animate-fade-in" *ngFor="let lead of leads">
+                <div class="lead-tag">{{ lead.mode }}</div>
+                <h3>{{ lead.title }}</h3>
+                <div class="lead-meta">
+                    <span><i class="fa-solid fa-location-dot"></i> {{ lead.location }}</span>
+                    <span><i class="fa-solid fa-graduation-cap"></i> {{ lead.classLevel }}</span>
+                </div>
+                <div class="subjects">
+                    <span class="badge" *ngFor="let sub of lead.subjects">{{ sub }}</span>
+                </div>
+                <a routerLink="/tutor/leads" class="btn btn-outline btn-block mt-1">View Details</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Dynamic Section: Featured Tutors for Parents -->
+    <section class="container mt-4 mb-4" *ngIf="userRole === 'PARENT' && tutors.length > 0">
+        <div class="section-header text-center mb-2">
+            <h2>Top Rated Tutors</h2>
+            <p>Connect with the best educators on our platform.</p>
+        </div>
+        <div class="tutors-grid">
+            <div class="tutor-card glass-panel animate-fade-in" *ngFor="let tutor of tutors">
+                <div class="tutor-header">
+                    <div class="avatar">{{ tutor.name.charAt(0) }}</div>
+                    <div>
+                        <h3>{{ tutor.name }}</h3>
+                        <div class="rating"><i class="fa-solid fa-star"></i> {{ tutor.rating || '5.0' }}</div>
+                    </div>
+                </div>
+                <p class="tagline">{{ tutor.tagline || 'Expert ' + (tutor.subjects[0] || 'Tutor') }}</p>
+                <div class="subjects">
+                    <span class="badge" *ngFor="let sub of tutor.subjects">{{ sub }}</span>
+                </div>
+                <a routerLink="/find-tutors" class="btn btn-outline btn-block mt-1">Hire Me</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Grid -->
+    <section class="features-section container mt-4">
+        <div class="section-header text-center mb-2">
+            <h2 class="animate-delay-1">Why Choose Us?</h2>
+            <p>Experience the future of tuition management.</p>
+        </div>
+
+        <div class="grid grid-cols-3 gap-2">
+            <div class="card feature-card animate-delay-1">
+                <div class="icon-box"><i class="fa-solid fa-shield-halved"></i></div>
+                <h3>Verified Tutors</h3>
+                <p>Every tutor is manually verified to ensure safety and quality education for your children.</p>
+            </div>
+            <div class="card feature-card animate-delay-2">
+                <div class="icon-box"><i class="fa-solid fa-location-dot"></i></div>
+                <h3>Local Matches</h3>
+                <p>Find the best tutors in your specific neighborhood with our advanced geolocation matching.</p>
+            </div>
+            <div class="card feature-card animate-delay-3">
+                <div class="icon-box"><i class="fa-solid fa-chart-line"></i></div>
+                <h3>Progress Tracking</h3>
+                <p>Manage leads, schedule classes, and track payments all in one intuitive dashboard.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Footer -->
+    <section class="cta-section mt-4 mb-2">
+        <div class="container">
+            <div class="cta-box glass-panel text-center">
+                <h2>Ready to upgrade your learning journey?</h2>
+                <p>Join thousands of students and tutors on ApnaTution today.</p>
+                <button [routerLink]="userRole ? '/dashboard' : '/register'" class="btn btn-primary mt-1">
+                    {{ userRole ? 'Go to Dashboard' : 'Join Now' }}
+                </button>
+            </div>
+        </div>
+    </section>
+</div>

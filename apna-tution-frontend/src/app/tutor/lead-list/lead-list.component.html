@@ -1,0 +1,27 @@
+<div class="container">
+    <h2>Available Tuitions</h2>
+
+    <div *ngFor="let lead of leads" class="lead-card" [class.unlocked]="lead.isUnlocked">
+        <div class="header">
+            <h3>{{ lead.title }}</h3>
+            <span class="badge" *ngIf="lead.isUnlocked">UNLOCKED</span>
+        </div>
+
+        <p><strong>Subject:</strong> {{ lead.subjects.join(', ') }}</p>
+        <p><strong>Class:</strong> {{ lead.classLevel }} | {{ lead.mode }}</p>
+
+        <div *ngIf="lead.isUnlocked; else lockedTemplate">
+            <hr>
+            <p><strong>Location:</strong> {{ lead.location }}</p>
+            <p><strong>Budget:</strong> {{ lead.budgetRange }}</p>
+            <p><strong>Description:</strong> {{ lead.description }}</p>
+            <p style="color: green; font-weight: bold;">Contact Details Available (Simulated)</p>
+        </div>
+
+        <ng-template #lockedTemplate>
+            <p class="blur">Location: Locked</p>
+            <p class="blur">Budget: Locked</p>
+            <button (click)="unlockLead(lead)" class="btn-unlock">Unlock for ₹99</button>
+        </ng-template>
+    </div>
+</div>

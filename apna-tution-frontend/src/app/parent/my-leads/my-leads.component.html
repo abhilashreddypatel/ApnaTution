@@ -1,0 +1,27 @@
+<div class="container animate-fade-in">
+    <div class="flex justify-between items-center mb-2">
+        <h2>My Leads</h2>
+        <a routerLink="/parent/create-lead" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i> Post New Lead
+        </a>
+    </div>
+
+    <div *ngIf="leads.length === 0" class="empty-state">
+        <h3>No leads posted yet.</h3>
+        <p>Post your first tuition requirement to find the best tutors!</p>
+    </div>
+
+    <div *ngFor="let lead of leads" class="lead-card">
+        <div class="flex justify-between items-center mb-1">
+            <h3>{{ lead.title }}</h3>
+            <span class="status-badge" [class.status-open]="lead.status === 'OPEN'"
+                [class.status-closed]="lead.status === 'CLOSED'">
+                {{ lead.status }}
+            </span>
+        </div>
+
+        <p><strong>Subject:</strong> {{ lead.subjects.join(', ') }}</p>
+        <p><strong>Class:</strong> {{ lead.classLevel }} | {{ lead.mode }}</p>
+        <p *ngIf="lead.location"><strong>Location:</strong> {{ lead.location }}</p>
+    </div>
+</div>

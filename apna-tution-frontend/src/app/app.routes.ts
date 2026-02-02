@@ -1,0 +1,51 @@
+import { Routes } from '@angular/router';
+import { LoginComponent } from './auth/login/login.component';
+import { RegisterComponent } from './auth/register/register.component';
+import { MyLeadsComponent } from './parent/my-leads/my-leads.component';
+import { CreateLeadComponent } from './parent/create-lead/create-lead.component';
+import { LeadListComponent } from './tutor/lead-list/lead-list.component';
+import { AdminDashboardComponent } from './admin/dashboard/dashboard.component';
+import { AuthGuard } from './core/guards/auth.guard';
+import { RoleGuard } from './core/guards/role.guard';
+
+import { Landing } from './landing/landing';
+
+export const routes: Routes = [
+    { path: '', component: Landing },
+    { path: 'find-tutors', loadComponent: () => import('./public/find-tutors/find-tutors').then(m => m.FindTutors) },
+    { path: 'dashboard', canActivate: [AuthGuard], loadComponent: () => import('./shared/dashboard/dashboard.component').then(m => m.DashboardComponent) },
+    { path: 'login', component: LoginComponent },
+    { path: 'register', component: RegisterComponent },
+    {
+        path: 'parent/my-leads',
+        component: MyLeadsComponent,
+        canActivate: [AuthGuard, RoleGuard],
+        data: { role: 'PARENT' }
+    },
+    {
+        path: 'parent/create-lead',
+        component: CreateLeadComponent,
+        canActivate: [AuthGuard, RoleGuard],
+        data: { role: 'PARENT' }
+    },
+    {
+        path: 'tutor/leads',
+        component: LeadListComponent,
+        canActivate: [AuthGuard, RoleGuard],
+        data: { role: 'TUTOR' }
+    },
+    {
+        path: 'admin',
+        component: AdminDashboardComponent,
+        canActivate: [AuthGuard, RoleGuard],
+        data: { role: 'ADMIN' }
+    },
+
+    {
+        path: 'profile',
+        loadComponent: () => import('./shared/profile/profile.component').then(m => m.ProfileComponent),
+        canActivate: [AuthGuard]
+    },
+
+    { path: '**', redirectTo: '' }
+];

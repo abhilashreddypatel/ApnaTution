@@ -1,0 +1,114 @@
+<div class="dashboard-container container animate-fade-in">
+    <div class="welcome-section">
+        <h1>Welcome back, <span class="text-gradient">{{ userName }}</span></h1>
+        <p>Here's what's happening with your account today.</p>
+    </div>
+
+    <div *ngIf="loading" class="loading-spinner">
+        <i class="fa-solid fa-circle-notch fa-spin"></i>
+        <p>Preparing your dashboard...</p>
+    </div>
+
+    <div *ngIf="!loading && stats" class="stats-grid">
+        <!-- Parent Stats -->
+        <ng-container *ngIf="userRole === 'PARENT'">
+            <div class="stat-card glass-panel">
+                <div class="stat-icon"><i class="fa-solid fa-paper-plane"></i></div>
+                <div class="stat-info">
+                    <h3>{{ stats.totalLeads }}</h3>
+                    <p>Total Leads Posted</p>
+                </div>
+            </div>
+            <div class="stat-card glass-panel">
+                <div class="stat-icon"><i class="fa-solid fa-bolt"></i></div>
+                <div class="stat-info">
+                    <h3>{{ stats.activeLeads }}</h3>
+                    <p>Active Requirments</p>
+                </div>
+            </div>
+            <div class="stat-card glass-panel">
+                <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
+                <div class="stat-info">
+                    <h3>{{ stats.totalInterest }}</h3>
+                    <p>Tutor Responses</p>
+                </div>
+            </div>
+        </ng-container>
+
+        <!-- Tutor Stats -->
+        <ng-container *ngIf="userRole === 'TUTOR'">
+            <div class="stat-card glass-panel">
+                <div class="stat-icon"><i class="fa-solid fa-unlock"></i></div>
+                <div class="stat-info">
+                    <h3>{{ stats.unlockedCount }}</h3>
+                    <p>Leads Unlocked</p>
+                </div>
+            </div>
+            <div class="stat-card glass-panel">
+                <div class="stat-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
+                <div class="stat-info">
+                    <h3>{{ stats.availableLeads }}</h3>
+                    <p>Available Opportunities</p>
+                </div>
+            </div>
+        </ng-container>
+
+        <!-- Admin Stats -->
+        <ng-container *ngIf="userRole === 'ADMIN'">
+            <div class="stat-card glass-panel">
+                <div class="stat-icon"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+                <div class="stat-info">
+                    <h3>{{ stats.revenue }}</h3>
+                    <p>Total Revenue</p>
+                </div>
+            </div>
+            <div class="stat-card glass-panel">
+                <div class="stat-icon"><i class="fa-solid fa-file-invoice"></i></div>
+                <div class="stat-info">
+                    <h3>{{ stats.totalLeads }}</h3>
+                    <p>Total Leads</p>
+                </div>
+            </div>
+            <div class="stat-card glass-panel">
+                <div class="stat-icon"><i class="fa-solid fa-chart-line"></i></div>
+                <div class="stat-info">
+                    <h3>{{ stats.unlockEvents }}</h3>
+                    <p>Recent Activities</p>
+                </div>
+            </div>
+        </ng-container>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="actions-section mt-4">
+        <h2>Quick Actions</h2>
+        <div class="actions-grid">
+            <ng-container *ngIf="userRole === 'PARENT'">
+                <a routerLink="/parent/create-lead" class="action-card glass-panel">
+                    <i class="fa-solid fa-plus-circle"></i>
+                    <span>Post New Requirement</span>
+                </a>
+                <a routerLink="/parent/my-leads" class="action-card glass-panel">
+                    <i class="fa-solid fa-list-check"></i>
+                    <span>Manage My Leads</span>
+                </a>
+            </ng-container>
+
+            <ng-container *ngIf="userRole === 'TUTOR'">
+                <a routerLink="/tutor/leads" class="action-card glass-panel">
+                    <i class="fa-solid fa-search"></i>
+                    <span>Find New Tuitions</span>
+                </a>
+                <a routerLink="/profile" class="action-card glass-panel">
+                    <i class="fa-solid fa-user-edit"></i>
+                    <span>Update My Profile</span>
+                </a>
+            </ng-container>
+
+            <a routerLink="/profile" class="action-card glass-panel">
+                <i class="fa-solid fa-gears"></i>
+                <span>Account Settings</span>
+            </a>
+        </div>
+    </div>
+</div>

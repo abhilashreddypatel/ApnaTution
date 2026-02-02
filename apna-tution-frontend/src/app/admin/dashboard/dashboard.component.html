@@ -1,0 +1,27 @@
+<div class="container">
+    <h2>Admin Dashboard</h2>
+
+    <div class="stats-grid">
+        <div class="card">
+            <h3>Total Leads</h3>
+            <p class="number">{{ stats?.totalLeads || 0 }}</p>
+        </div>
+        <div class="card">
+            <h3>Open Leads</h3>
+            <p class="number">{{ stats?.openLeads || 0 }}</p>
+        </div>
+        <div class="card">
+            <h3>Revenue</h3>
+            <p class="number">₹{{ stats?.revenue || 0 }}</p>
+        </div>
+        <div class="card">
+            <h3>Unlocks</h3>
+            <p class="number">{{ stats?.unlockEvents || 0 }}</p>
+        </div>
+    </div>
+
+    <div class="actions">
+        <h3>Quick Actions</h3>
+        <p>Lead Moderation is handled via API currently. UI coming soon.</p>
+    </div>
+</div>

@@ -1,0 +1,33 @@
+<nav class="navbar">
+    <a routerLink="/" class="brand">ApnaTution</a>
+    <div class="links">
+        <a *ngIf="(role$ | async) !== 'TUTOR'" routerLink="/find-tutors" routerLinkActive="active">Find Tutors</a>
+
+        <ng-container *ngIf="isLoggedIn$ | async; else guestLinks">
+            <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+            <!-- Parent Links -->
+            <ng-container *ngIf="(role$ | async) === 'PARENT'">
+                <a routerLink="/parent/my-leads" routerLinkActive="active">My Leads</a>
+                <a routerLink="/parent/create-lead" routerLinkActive="active">Post Lead</a>
+            </ng-container>
+
+            <!-- Tutor Links -->
+            <ng-container *ngIf="(role$ | async) === 'TUTOR'">
+                <a routerLink="/tutor/leads" routerLinkActive="active">Browse Leads</a>
+            </ng-container>
+
+            <!-- Admin Links -->
+            <ng-container *ngIf="(role$ | async) === 'ADMIN'">
+                <a routerLink="/admin" routerLinkActive="active">Dashboard</a>
+            </ng-container>
+
+            <a routerLink="/profile" routerLinkActive="active">Profile</a>
+            <button (click)="logout()">Logout</button>
+        </ng-container>
+
+        <ng-template #guestLinks>
+            <a routerLink="/login" routerLinkActive="active">Login</a>
+            <a routerLink="/register" class="btn-register">Join Free</a>
+        </ng-template>
+    </div>
+</nav>
