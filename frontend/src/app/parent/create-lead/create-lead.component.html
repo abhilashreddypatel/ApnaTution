@@ -1,5 +1,5 @@
-<div class="container">
-    <h2>Post a Tuition Requirement</h2>
+<div class="container animate-fade-in">
+    <h2>{{ isEditMode ? 'Edit Tuition Requirement' : 'Post a Tuition Requirement' }}</h2>
     <form [formGroup]="leadForm" (ngSubmit)="onSubmit()">
         <div class="form-group">
             <label>Title</label>
@@ -20,7 +20,8 @@
             <label>Mode</label>
             <select formControlName="mode">
                 <option value="ONLINE">Online</option>
-                <option value="OFFLINE">Offline</option>
+                <option value="HOME">Home</option>
+                <option value="BOTH">Both</option>
             </select>
         </div>
 
@@ -39,6 +40,8 @@
             <textarea formControlName="description"></textarea>
         </div>
 
-        <button type="submit">Post Lead</button>
+        <button type="submit" [disabled]="loading">
+            {{ loading ? 'Saving...' : (isEditMode ? 'Update Lead' : 'Post Lead') }}
+        </button>
     </form>
 </div>

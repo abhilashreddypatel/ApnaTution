@@ -1,3 +1,4 @@
+/* Page Layout */
 .page-wrapper {
     display: flex;
     gap: 0;
@@ -5,7 +6,8 @@
     margin: 0;
     padding: 0;
     font-family: 'Inter', sans-serif;
-    color: var(--text-main, #333);
+    color: var(--text-main);
+    /* Changed to var */
     align-items: flex-start;
 }
 
@@ -14,21 +16,18 @@
     width: 250px;
     flex-shrink: 0;
     position: fixed;
-    /* Fixed position */
     left: 0;
     top: 60px;
-    /* Below Navbar */
     bottom: 0;
     overflow-y: auto;
-    /* Scrollable if content overflows */
     background: #fff;
-    border-right: 1px solid #e5e7eb;
+    border-right: 1px solid var(--border-light);
+    /* Changed to var */
     z-index: 100;
 }
 
 .filter-card {
     background: white;
-    /* Remove card styles as it's now the sidebar itself mostly */
     border-radius: 0;
     box-shadow: none;
     border: none;
@@ -37,10 +36,11 @@
 
 .filter-header {
     background: white;
-    /* Clean header like Zepto/modern apps */
     padding: 1rem 1.25rem;
-    border-bottom: 1px solid #f0f0f0;
-    color: #111827;
+    border-bottom: 1px solid var(--border-light);
+    /* Changed to var */
+    color: var(--text-main);
+    /* Changed to var */
 }
 
 .filter-header h3 {
@@ -52,14 +52,16 @@
 
 .filter-group {
     padding: 0.75rem 1.25rem;
-    border-bottom: 1px solid #f3f4f6;
+    border-bottom: 1px solid var(--border-light);
+    /* Changed to var */
 }
 
 .filter-group label {
     display: block;
     margin-bottom: 0.35rem;
     font-weight: 600;
-    color: #374151;
+    color: var(--text-secondary);
+    /* Changed to var */
     font-size: 0.8rem;
     text-transform: uppercase;
     letter-spacing: 0.02em;
@@ -69,20 +71,23 @@
 .filter-group select {
     width: 100%;
     padding: 0.5rem 0.75rem;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--border-light);
+    /* Changed to var */
     border-radius: 6px;
     font-size: 0.85rem;
     transition: all 0.2s;
-    background: #f9fafb;
+    background: #f8fafc;
+    /* Slightly darker than white */
     box-sizing: border-box;
+    color: var(--text-main);
 }
 
 .filter-group input:focus,
 .filter-group select:focus {
     outline: none;
     background: white;
-    border-color: #2563eb;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px var(--primary-glow);
 }
 
 /* Radio Group */
@@ -98,7 +103,7 @@
     gap: 0.5rem;
     cursor: pointer;
     font-size: 0.85rem;
-    color: #4b5563;
+    color: var(--text-secondary);
 }
 
 /* Main Content */
@@ -106,10 +111,9 @@
     flex-grow: 1;
     min-width: 0;
     margin-left: 250px;
-    /* Matched to sidebar */
     padding: 1.5rem 2rem;
-    background: #f8fafc;
-    /* Light gray background for contrast */
+    background: var(--bg-core);
+    /* Default likely f8fafc */
     min-height: 100vh;
 }
 
@@ -125,7 +129,7 @@
 .header-section h2 {
     font-size: 1.5rem;
     font-weight: 700;
-    color: #1f2937;
+    color: var(--text-main);
     margin: 0;
 }
 
@@ -140,7 +144,7 @@
 .tutor-card {
     background: white;
     border-radius: 12px;
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--border-light);
     transition: transform 0.2s, box-shadow 0.2s;
     overflow: hidden;
     display: flex;
@@ -150,7 +154,7 @@
 .tutor-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 12px 24px -6px rgba(0, 0, 0, 0.1);
-    border-color: #bfdbfe;
+    border-color: var(--border-focus);
 }
 
 /* Card Header */
@@ -158,7 +162,7 @@
     padding: 1.25rem;
     display: flex;
     gap: 1rem;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--border-light);
     align-items: center;
 }
 
@@ -178,7 +182,7 @@
 
 .tutor-info h3 {
     font-size: 1.15rem;
-    color: #111827;
+    color: var(--text-main);
     margin: 0 0 0.25rem 0;
     display: flex;
     align-items: center;
@@ -187,13 +191,13 @@
 
 .tagline {
     font-size: 0.9rem;
-    color: #6b7280;
+    color: var(--text-secondary);
     line-height: 1.4;
     margin: 0;
 }
 
 .verified-icon {
-    color: #2563eb;
+    color: var(--primary);
     font-size: 0.9rem;
 }
 
@@ -208,7 +212,7 @@
 
 .detail-row {
     font-size: 0.9rem;
-    color: #4b5563;
+    color: var(--text-secondary);
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -218,7 +222,7 @@
 .detail-row span.icon {
     width: 20px;
     text-align: center;
-    color: #6b7280;
+    color: var(--text-muted);
 }
 
 .subject-tags {
@@ -231,6 +235,7 @@
 .badge {
     background: #f0f9ff;
     color: #0369a1;
+    /* Keep branded blue for tags */
     padding: 0.25rem 0.75rem;
     border-radius: 999px;
     font-size: 0.8rem;
@@ -241,7 +246,7 @@
 .tutor-footer {
     padding: 1rem 1.25rem;
     background: #f9fafb;
-    border-top: 1px solid #e5e7eb;
+    border-top: 1px solid var(--border-light);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -249,11 +254,11 @@
 
 .price {
     font-weight: 700;
-    color: #111827;
+    color: var(--text-main);
 }
 
 .btn-contact {
-    background: #2563eb;
+    background: var(--primary);
     color: white;
     border: none;
     padding: 0.5rem 1.25rem;
@@ -265,6 +270,7 @@
 
 .btn-contact:hover {
     background: #1d4ed8;
+    /* Darker blue manually */
 }
 
 /* Responsive */

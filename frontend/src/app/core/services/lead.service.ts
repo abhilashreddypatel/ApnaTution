@@ -14,6 +14,14 @@ export class LeadService {
         return this.http.post(this.apiUrl, lead);
     }
 
+    getLead(id: string): Observable<any> {
+        return this.http.get(`${this.apiUrl}/${id}`);
+    }
+
+    updateLead(id: string, lead: any): Observable<any> {
+        return this.http.put(`${this.apiUrl}/${id}`, lead);
+    }
+
     getMyLeads(): Observable<any[]> {
         return this.http.get<any[]>(`${this.apiUrl}/my`);
     }

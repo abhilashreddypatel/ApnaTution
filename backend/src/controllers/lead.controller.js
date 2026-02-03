@@ -91,3 +91,35 @@ exports.closeLead = async (req, res) => {
         res.status(500).json({ message: "Failed to close lead" });
     }
 };
+
+exports.updateLead = async (req, res) => {
+    try {
+        const lead = await TuitionLead.findOne({ _id: req.params.id, parentId: req.user.id });
+        if (!lead) {
+            return res.status(404).json({ message: "Lead not found or unauthorized" });
+        }
+
+        const updatedLead = await TuitionLead.findByIdAndUpdate(
+            req.params.id,
+            { ...req.body },
+            { new: true }
+        );
+
+        res.json(updatedLead);
+    } catch (err) {
+        console.error("Update Lead Error:", err);
+        res.status(500).json({ message: "Failed to update lead" });
+    }
+};
+
+exports.getLeadById = async (req, res) => {
+    try {
+        const lead = await TuitionLead.findOne({ _id: req.params.id, parentId: req.user.id });
+        if (!lead) {
+            return res.status(404).json({ message: "Lead not found" });
+        }
+        res.json(lead);
+    } catch (err) {
+        res.status(500).json({ message: "Failed to fetch lead" });
+    }
+};

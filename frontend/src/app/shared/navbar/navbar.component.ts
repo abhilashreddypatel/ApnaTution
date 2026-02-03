@@ -18,6 +18,7 @@ import { Observable, map } from 'rxjs';
       background: var(--bg-glass);
       backdrop-filter: blur(10px);
       border-bottom: 1px solid var(--border-light);
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
       position: sticky;
       top: 0;
       z-index: 1000;

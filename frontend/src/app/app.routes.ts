@@ -29,6 +29,12 @@ export const routes: Routes = [
         data: { role: 'PARENT' }
     },
     {
+        path: 'parent/edit-lead/:id',
+        component: CreateLeadComponent,
+        canActivate: [AuthGuard, RoleGuard],
+        data: { role: 'PARENT' }
+    },
+    {
         path: 'tutor/leads',
         component: LeadListComponent,
         canActivate: [AuthGuard, RoleGuard],

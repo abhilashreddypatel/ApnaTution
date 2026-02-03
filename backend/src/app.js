@@ -4,6 +4,7 @@ const cors = require("cors");
 const authRoutes = require("./routes/auth.routes");
 
 const app = express();
+// Force Restart Trigger
 
 app.use(cors());
 app.use(express.json());

@@ -21,7 +21,7 @@ const TuitionLeadSchema = new mongoose.Schema(
         },
         mode: {
             type: String,
-            enum: ["ONLINE", "OFFLINE"],
+            enum: ["ONLINE", "OFFLINE", "HOME", "BOTH"],
             required: true
         },
         location: {

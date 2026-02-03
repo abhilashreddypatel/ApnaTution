@@ -23,5 +23,9 @@
         <p><strong>Subject:</strong> {{ lead.subjects.join(', ') }}</p>
         <p><strong>Class:</strong> {{ lead.classLevel }} | {{ lead.mode }}</p>
         <p *ngIf="lead.location"><strong>Location:</strong> {{ lead.location }}</p>
+
+        <div class="card-actions mt-3">
+            <a [routerLink]="['/parent/edit-lead', lead._id]" class="btn-xs btn-outline">Edit</a>
+        </div>
     </div>
 </div>
