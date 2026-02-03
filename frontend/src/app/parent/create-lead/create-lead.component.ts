@@ -54,8 +54,10 @@ export class CreateLeadComponent implements OnInit {
                 });
                 this.loading = false;
             },
-            error: () => {
-                alert('Failed to load lead details');
+            error: (err) => {
+                console.error('Load Error:', err);
+                const status = err.status === 404 ? 'Lead not found or server outdated.' : err.statusText;
+                alert(`Failed to load lead: ${status}. \n\nIMPORTANT: If you just added this feature, please RESTART the backend server.`);
                 this.loading = false;
                 this.router.navigate(['/parent/my-leads']);
             }

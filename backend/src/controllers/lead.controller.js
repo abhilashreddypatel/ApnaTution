@@ -114,12 +114,28 @@ exports.updateLead = async (req, res) => {
 
 exports.getLeadById = async (req, res) => {
     try {
+        console.log(`Fetching Lead: ${req.params.id} for User: ${req.user.id}`);
+
+        // Debug check: Does lead exist at all?
+        const leadCheck = await TuitionLead.findById(req.params.id);
+        if (!leadCheck) {
+            console.log("Lead does not exist in DB");
+            return res.status(404).json({ message: "Lead not found in DB" });
+        } else {
+            console.log(`Lead exists. Owner: ${leadCheck.parentId}, Requestor: ${req.user.id}`);
+        }
+
         const lead = await TuitionLead.findOne({ _id: req.params.id, parentId: req.user.id });
         if (!lead) {
-            return res.status(404).json({ message: "Lead not found" });
+            console.log("Lead found but Parent ID mismatch");
+            // For now, let's return it ANYWAY if it belongs to someone else, JUST FOR DEBUGGING, 
+            // OR return the mismatch error more clearly.
+            // Actually, let's Just return 404 but we know why now from server logs.
+            return res.status(404).json({ message: "Lead not found (Parent mismatch)" });
         }
         res.json(lead);
     } catch (err) {
+        console.error("GetLeadById Error:", err);
         res.status(500).json({ message: "Failed to fetch lead" });
     }
 };

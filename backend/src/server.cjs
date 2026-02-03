@@ -1,3 +1,4 @@
+// Server Entry Point (Restart Triggered 2)
 require('dotenv').config();
 const app = require('./app');
 const connectDB = require('./config/db');
