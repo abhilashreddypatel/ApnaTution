@@ -1,27 +1,132 @@
-<div class="container">
-    <h2>Available Tuitions</h2>
+<div class="page-wrapper">
+    <!-- Sidebar Filters -->
+    <aside class="sidebar">
+        <div class="filter-card">
+            <div class="filter-header">
+                <h3>Refine Search</h3>
+            </div>
 
-    <div *ngFor="let lead of leads" class="lead-card" [class.unlocked]="lead.isUnlocked">
-        <div class="header">
-            <h3>{{ lead.title }}</h3>
-            <span class="badge" *ngIf="lead.isUnlocked">UNLOCKED</span>
+            <div class="filter-group">
+                <label>Locality / Pincode</label>
+                <input type="text" placeholder="Locality or Pincode" (input)="onFilterChange('location', $event)">
+            </div>
+
+            <div class="filter-group">
+                <label>Course / Class</label>
+                <input type="text" placeholder="Enter course or class" (input)="onFilterChange('course', $event)">
+            </div>
+
+            <div class="filter-group">
+                <label>Subject</label>
+                <input type="text" placeholder="Enter subject" (input)="onFilterChange('subject', $event)">
+            </div>
+
+            <div class="filter-group">
+                <label>Hourly Price</label>
+                <div class="radio-group">
+                    <!-- Simplified value passing for prototyping -->
+                    <label class="radio-item">
+                        <input type="radio" name="price" value="" checked (change)="onFilterChange('price', $event)">
+                        <span>Any</span>
+                    </label>
+                    <label class="radio-item">
+                        <input type="radio" name="price" value="200" (change)="onFilterChange('price', $event)">
+                        <span>Upto ₹ 200</span>
+                    </label>
+                    <label class="radio-item">
+                        <input type="radio" name="price" value="500" (change)="onFilterChange('price', $event)">
+                        <span>₹ 201 - ₹ 500</span>
+                    </label>
+                    <label class="radio-item">
+                        <input type="radio" name="price" value="1000" (change)="onFilterChange('price', $event)">
+                        <span>Above ₹ 500</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="header-section">
+            <h2>Home Tuitions / Part time tutoring jobs</h2>
+            <div class="sort-controls">
+                <span>Sort By</span>
+                <select>
+                    <option>Default Sort</option>
+                    <option>Newest First</option>
+                    <option>Price: High to Low</option>
+                </select>
+            </div>
         </div>
 
-        <p><strong>Subject:</strong> {{ lead.subjects.join(', ') }}</p>
-        <p><strong>Class:</strong> {{ lead.classLevel }} | {{ lead.mode }}</p>
+        <div class="leads-grid">
+            <div *ngFor="let lead of filteredLeads" class="lead-card" [class.unlocked]="lead.isUnlocked">
+                <div class="card-header-date">
+                    📅 Posted On: {{ lead.createdAt ? (lead.createdAt | date:'dd-MMM-yy') : 'Recently' }}
+                </div>
 
-        <div *ngIf="lead.isUnlocked; else lockedTemplate">
-            <hr>
-            <p><strong>Location:</strong> {{ lead.location }}</p>
-            <p><strong>Budget:</strong> {{ lead.budgetRange }}</p>
-            <p><strong>Description:</strong> {{ lead.description }}</p>
-            <p style="color: green; font-weight: bold;">Contact Details Available (Simulated)</p>
+                <div class="card-body">
+                    <div class="tutor-info">
+                        <div class="avatar-placeholder">
+                            <span class="initials">{{ lead.title ? lead.title.substring(0,2).toUpperCase() : 'TU'
+                                }}</span>
+                        </div>
+                        <div class="details">
+                            <h3 class="lead-title">{{ lead.title }}</h3>
+                            <div class="location-row" *ngIf="lead.isUnlocked; else lockedLocation">
+                                <span class="icon">📍</span> {{ lead.location }}
+                            </div>
+                            <ng-template #lockedLocation>
+                                <div class="location-row locked-text">
+                                    <span class="icon">📍</span> Location Locked
+                                </div>
+                            </ng-template>
+                        </div>
+                    </div>
+
+                    <div class="specs-grid">
+                        <div class="spec-item">
+                            <span class="label">Preferred:</span>
+                            <span class="value">
+                                <span class="gender-icon">👤 Any</span>
+                                <span class="time-icon">🕒 Evening</span>
+                            </span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="label">Class:</span>
+                            <span class="value">{{ lead.classLevel }}</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="label">Subjects:</span>
+                            <span class="value highlight-text">{{ lead.subjects.join(', ') }}</span>
+                        </div>
+                        <div class="spec-item">
+                            <span class="label">Budget:</span>
+                            <span class="value" *ngIf="lead.isUnlocked">{{ lead.budgetRange }}</span>
+                            <span class="value locked-text" *ngIf="!lead.isUnlocked">Locked</span>
+                        </div>
+                    </div>
+
+                    <div class="desc-box">
+                        <p *ngIf="lead.isUnlocked">{{ lead.description }}</p>
+                        <p *ngIf="!lead.isUnlocked" class="blur-text">
+                            Looking for a tutor for {{ lead.classLevel }} covering {{ lead.subjects.join(', ') }}.
+                            Unlock to view full details...
+                        </p>
+                    </div>
+
+                    <div class="action-buttons">
+                        <button class="btn-secondary">View Details</button>
+                        <button *ngIf="!lead.isUnlocked" (click)="unlockLead(lead)" class="btn-primary">
+                            Unlock (₹99)
+                        </button>
+                        <button *ngIf="lead.isUnlocked" class="btn-success">
+                            Apply Now
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
-
-        <ng-template #lockedTemplate>
-            <p class="blur">Location: Locked</p>
-            <p class="blur">Budget: Locked</p>
-            <button (click)="unlockLead(lead)" class="btn-unlock">Unlock for ₹99</button>
-        </ng-template>
-    </div>
+    </main>
 </div>

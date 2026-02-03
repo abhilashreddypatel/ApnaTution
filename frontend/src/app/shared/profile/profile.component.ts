@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
@@ -18,7 +18,8 @@ export class ProfileComponent implements OnInit {
 
     constructor(
         private fb: FormBuilder,
-        private authService: AuthService
+        private authService: AuthService,
+        private cdr: ChangeDetectorRef
     ) {
         this.profileForm = this.fb.group({
             name: ['', Validators.required],
@@ -39,16 +40,20 @@ export class ProfileComponent implements OnInit {
     }
 
     loadProfile() {
+        console.log('ProfileComponent: Loading profile...');
         this.loading = true;
         this.authService.getProfile().subscribe({
             next: (user) => {
+                console.log('ProfileComponent: Profile loaded', user);
                 this.userRole = user.role;
                 this.profileForm.patchValue(user);
                 this.loading = false;
+                this.cdr.detectChanges();
             },
             error: (err) => {
-                console.error('Failed to load profile', err);
+                console.error('ProfileComponent: Failed to load profile', err);
                 this.loading = false;
+                this.cdr.detectChanges();
             }
         });
     }
@@ -58,13 +63,16 @@ export class ProfileComponent implements OnInit {
             this.saving = true;
             this.authService.updateProfile(this.profileForm.getRawValue()).subscribe({
                 next: (updatedUser) => {
+                    console.log('ProfileComponent: Profile updated', updatedUser);
                     alert('Profile updated successfully!');
                     this.saving = false;
+                    this.cdr.detectChanges();
                 },
                 error: (err) => {
-                    console.error('Update failed', err);
+                    console.error('ProfileComponent: Update failed', err);
                     alert('Failed to update profile.');
                     this.saving = false;
+                    this.cdr.detectChanges();
                 }
             });
         }

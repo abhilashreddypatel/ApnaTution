@@ -1,71 +1,94 @@
-<div class="search-hero">
-    <div class="container text-center animate-fade-in">
-        <h1>Find the Perfect Tutor</h1>
-        <p>Browse through thousands of verified tutors in your area.</p>
+<div class="page-wrapper">
+    <!-- Sidebar Filters -->
+    <aside class="sidebar">
+        <div class="filter-card">
+            <div class="filter-header">
+                <h3>Refine Tutors</h3>
+            </div>
 
-        <div class="search-bar">
-            <i class="fa-solid fa-magnifying-glass search-icon"></i>
-            <input type="text" placeholder="Search by Subject, Name or Location..." (input)="onSearch($event)">
-            <button class="btn btn-primary">Search</button>
+            <div class="filter-group">
+                <label>Locality / Pincode</label>
+                <input type="text" placeholder="e.g. 500032 or Gachibowli" (input)="onFilterChange('location', $event)">
+            </div>
+
+            <div class="filter-group">
+                <label>Subject</label>
+                <input type="text" placeholder="Maths, Physics, etc." (input)="onFilterChange('subject', $event)">
+            </div>
+
+            <div class="filter-group">
+                <label>Class Level</label>
+                <input type="text" placeholder="Class 10, CBSE, etc." (input)="onFilterChange('class', $event)">
+            </div>
+
+            <div class="filter-group">
+                <label>Mode</label>
+                <select (change)="onFilterChange('mode', $event)">
+                    <option value="">Any</option>
+                    <option value="ONLINE">Online</option>
+                    <option value="HOME">Home</option>
+                    <option value="BOTH">Both</option>
+                </select>
+            </div>
         </div>
-    </div>
-</div>
+    </aside>
 
-<div class="container main-content">
-    <div class="loading-state" *ngIf="loading">
-        <i class="fa-solid fa-circle-notch fa-spin"></i>
-        <p>Loading Tutors...</p>
-    </div>
+    <!-- Main Grid -->
+    <main class="main-content">
+        <div class="header-section">
+            <h2>Find the Perfect Tutor</h2>
 
-    <div class="tutor-grid" *ngIf="!loading">
-        <div class="tutor-card animate-fade-in" *ngFor="let tutor of filteredTutors">
-            <div class="tutor-header">
-                <div class="avatar-placeholder">
-                    {{ tutor.name.charAt(0) }}
-                </div>
-                <div class="tutor-info">
-                    <h3>
-                        {{ tutor.name }}
-                        <i class="fa-solid fa-circle-check verified-icon" *ngIf="tutor.isVerified"
-                            title="Verified Tutor"></i>
-                    </h3>
-                    <p class="tagline">{{ tutor.tagline || 'Experience personalized learning with ' + tutor.name }}</p>
-                    <div class="rating">
-                        <i class="fa-solid fa-star"></i> {{ tutor.rating || '5.0' }} <span>({{ tutor.reviewsCount || 0
-                            }} Reviews)</span>
+            <div class="loading-state" *ngIf="loading">
+                <i class="fa-solid fa-spinner fa-spin"></i> Loading...
+            </div>
+        </div>
+
+        <div class="tutor-grid" *ngIf="!loading">
+            <div class="tutor-card animate-fade-in" *ngFor="let tutor of filteredTutors">
+                <div class="tutor-header">
+                    <div class="avatar-placeholder">
+                        {{ tutor.name ? tutor.name.charAt(0).toUpperCase() : 'T' }}
+                    </div>
+                    <div class="tutor-info">
+                        <h3>
+                            {{ tutor.name }}
+                            <i class="fa-solid fa-circle-check verified-icon" *ngIf="tutor.isVerified"
+                                title="Verified"></i>
+                        </h3>
+                        <p class="tagline">{{ tutor.tagline || 'Passionate educator ready to help.' }}</p>
                     </div>
                 </div>
-            </div>
 
-            <div class="tutor-details">
-                <div class="detail-item">
-                    <i class="fa-solid fa-location-dot"></i> {{ tutor.location || 'Location not specified' }}
-                </div>
-                <div class="detail-item">
-                    <i class="fa-solid fa-graduation-cap"></i> {{ tutor.experience || 'Not specified' }}
-                </div>
-                <div class="detail-item">
-                    <i class="fa-solid fa-video" *ngIf="tutor.mode === 'ONLINE'"></i>
-                    <i class="fa-solid fa-house" *ngIf="tutor.mode === 'HOME'"></i>
-                    <i class="fa-solid fa-chalkboard-user" *ngIf="tutor.mode === 'BOTH'"></i>
-                    {{ tutor.mode | titlecase }}
-                </div>
-            </div>
+                <div class="tutor-body">
+                    <div class="detail-row">
+                        <span class="icon">📍</span>
+                        {{ tutor.location || 'Location not specified' }}
+                    </div>
+                    <div class="detail-row">
+                        <span class="icon">🎓</span>
+                        {{ tutor.experience || 'Experience not added' }}
+                    </div>
+                    <div class="detail-row">
+                        <span class="icon">💻</span>
+                        {{ tutor.mode | titlecase }}
+                    </div>
 
-            <div class="tutor-subjects">
-                <span class="badge" *ngFor="let sub of tutor.subjects">{{ sub }}</span>
-            </div>
+                    <div class="subject-tags">
+                        <span class="badge" *ngFor="let sub of tutor.subjects">{{ sub }}</span>
+                    </div>
+                </div>
 
-            <div class="tutor-footer">
-                <span class="price">{{ tutor.hourlyRate || 'Contact for price' }}</span>
-                <button class="btn btn-outline" routerLink="/login">Contact</button>
+                <div class="tutor-footer">
+                    <span class="price">{{ tutor.hourlyRate ? '₹' + tutor.hourlyRate + '/hr' : 'Negotiable' }}</span>
+                    <button class="btn-contact" routerLink="/login">Contact Tutor</button>
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="no-results" *ngIf="!loading && filteredTutors.length === 0">
-        <i class="fa-regular fa-face-frown"></i>
-        <h3>No tutors found</h3>
-        <p>Try searching for a different subject or location.</p>
-    </div>
+        <div class="no-results" *ngIf="!loading && filteredTutors.length === 0">
+            <i class="fa-regular fa-face-frown" style="font-size: 3rem; color: #ccc;"></i>
+            <h3>No tutors found</h3>
+            <p>Try adjusting your search criteria.</p>
+        </div>
+    </main>
 </div>
