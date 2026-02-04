@@ -58,25 +58,49 @@ exports.unlockLead = async (req, res) => {
     try {
         const tutorId = req.user.id;
         const leadId = req.params.id;
+        const Transaction = require("../models/Transaction.model");
+        const User = require("../models/user.model");
 
         const alreadyUnlocked = await LeadUnlock.findOne({ tutorId, leadId });
         if (alreadyUnlocked) {
             return res.status(409).json({ message: "Lead already unlocked" });
         }
 
-        // 🔥 PAYMENT PLACEHOLDER (important)
-        const price = 99; // later from config / plan
+        const user = await User.findById(tutorId);
+        if (!user.points || user.points < 1) {
+            return res.status(403).json({ message: "Insufficient points. Please recharge." });
+        }
 
-        await LeadUnlock.create({ tutorId, leadId, price });
+        // Deduct Point
+        user.points -= 1;
+        await user.save();
+
+        // Record Unlock
+        await LeadUnlock.create({
+            tutorId,
+            leadId,
+            price: 1
+        });
+
+        // Record Debit Transaction
+        await Transaction.create({
+            userId: tutorId,
+            amount: 0,
+            points: 1,
+            type: "DEBIT",
+            description: `Unlocked Lead (ID: ${leadId})`,
+            status: "SUCCESS"
+        });
 
         await KPIEvent.create({
             userId: tutorId,
             eventType: "LEAD_UNLOCK",
-            metadata: { leadId, price }
+            metadata: { leadId, price: 1 }
         });
 
-        res.json({ message: "Lead unlocked" });
+        res.json({ message: "Lead unlocked successfully!", remainingPoints: user.points });
     } catch (err) {
+        console.error("Unlock Error:", err);
         res.status(500).json({ message: "Unlock failed" });
     }
 };

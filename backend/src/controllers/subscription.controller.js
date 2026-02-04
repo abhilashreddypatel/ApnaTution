@@ -2,15 +2,17 @@ const User = require("../models/user.model");
 const SubscriptionPlan = require("../models/SubscriptionPlan.model");
 const Transaction = require("../models/Transaction.model");
 const Coupon = require("../models/Coupon.model");
+const LeadUnlock = require("../models/LeadUnlock.model");
+const TuitionLead = require("../models/TutionLead.model");
 
 // Lazy Seed Plans (for demo purposes)
 const seedPlans = async () => {
     const plans = await SubscriptionPlan.find();
     if (plans.length === 0) {
         await SubscriptionPlan.insertMany([
-            { name: "Starter Pack", price: 500, points: 10, discountDescription: "Standard Rate (50rs/lead)" },
-            { name: "Growth Pack", price: 2000, points: 50, discountDescription: "Save 20% (40rs/lead)" },
-            { name: "Pro Pack", price: 5000, points: 150, discountDescription: "Save 33% (33rs/lead)" }
+            { name: "Starter Pack", price: 500, points: 10, discountDescription: "Standard Rate" },
+            { name: "Growth Pack", price: 2000, points: 50, discountDescription: "Save 20%" },
+            { name: "Pro Pack", price: 5000, points: 150, discountDescription: "Save 33% - Best Value" }
         ]);
         console.log("Plans seeded");
     }
@@ -106,11 +108,11 @@ exports.createOrder = async (req, res) => {
 // Mock Payment Success
 exports.verifyPayment = async (req, res) => {
     try {
-        const { transactionId } = req.body; // In real flow, verify signature
+        const { transactionId, paymentId } = req.body; // In real flow, verify signature
 
         const transaction = await Transaction.findById(transactionId);
         if (!transaction) return res.status(404).json({ message: "Transaction not found" });
-        if (transaction.status === "SUCCESS") return res.status(200).json({ message: "Already processed" });
+        if (transaction.status === "SUCCESS") return res.status(400).json({ message: "Already processed" });
 
         // Update Transaction
         transaction.status = "SUCCESS";
@@ -118,7 +120,7 @@ exports.verifyPayment = async (req, res) => {
 
         // Credit Points to User
         const user = await User.findById(transaction.userId);
-        user.points = (user.points || 0) + transaction.points;
+        user.points += transaction.points;
         await user.save();
 
         // Increment Coupon Usage if applicable
@@ -130,5 +132,52 @@ exports.verifyPayment = async (req, res) => {
 
     } catch (error) {
         res.status(500).json({ message: "Verify payment failed", error: error.message });
+    }
+};
+
+exports.unlockLead = async (req, res) => {
+    try {
+        const { leadId } = req.body; // or params
+        const userId = req.user.id; // Tutor
+
+        const user = await User.findById(userId);
+        if (user.points < 1) {
+            return res.status(403).json({ message: "Insufficient points. Please recharge." });
+        }
+
+        const lead = await TuitionLead.findById(leadId);
+        if (!lead) return res.status(404).json({ message: "Lead not found" });
+
+        // Check if already unlocked
+        const alreadyUnlocked = await LeadUnlock.findOne({ tutorId: userId, leadId: leadId });
+        if (alreadyUnlocked) {
+            return res.status(200).json({ message: "Lead already unlocked", lead });
+        }
+
+        // Deduct Point
+        user.points -= 1;
+        await user.save();
+
+        // Record Unlock
+        await LeadUnlock.create({
+            tutorId: userId,
+            leadId: leadId,
+            price: 1 // Cost in points
+        });
+
+        // Record Debit Transaction
+        await Transaction.create({
+            userId,
+            amount: 0,
+            points: 1,
+            type: "DEBIT",
+            description: `Unlocked Lead: ${lead.title}`,
+            status: "SUCCESS"
+        });
+
+        res.status(200).json({ message: "Lead unlocked successfully!", remainingPoints: user.points });
+
+    } catch (error) {
+        res.status(500).json({ message: "Error unlocking lead", error: error.message });
     }
 };

@@ -50,14 +50,19 @@ exports.getParentDashboard = async (req, res) => {
 
 exports.getTutorDashboard = async (req, res) => {
     try {
+        const User = require("../models/user.model");
         const unlockedCount = await LeadUnlock.countDocuments({ tutorId: req.user.id });
         const availableLeads = await TuitionLead.countDocuments({ status: "OPEN" });
 
+        const user = await User.findById(req.user.id).select('points');
+
         res.json({
             unlockedCount,
-            availableLeads
+            availableLeads,
+            points: user?.points || 0
         });
     } catch (err) {
+        console.error(err);
         res.status(500).json({ message: "Failed to fetch dashboard" });
     }
 };
