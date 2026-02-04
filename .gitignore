@@ -18,7 +18,6 @@ Thumbs.db
 
 # Angular specific (if any at root or subfolders)
 .angular/
-dist/
 /apna-tution-frontend/dist/
 /apna-tution-frontend/.angular/
 
