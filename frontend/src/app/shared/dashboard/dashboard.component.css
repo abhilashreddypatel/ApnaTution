@@ -80,6 +80,12 @@
     font-weight: 600;
     transition: all 0.2s ease;
     text-align: center;
+    /* Button resets */
+    border: 1px solid var(--border-light);
+    background: var(--bg-glass);
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 1rem;
 }
 
 .action-card i {

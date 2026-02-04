@@ -1,0 +1,77 @@
+<div class="container animate-fade-in" style="padding: 40px 20px;">
+    <div class="text-center mb-4">
+        <h2 class="section-title">Invest in Your <span class="text-gradient">Growth</span></h2>
+        <p class="section-subtitle">Choose a plan that fits your teaching goals. Unlocked leads are yours forever.</p>
+
+        <div class="balance-badge glass-panel">
+            <i class="fa-solid fa-wallet"></i>
+            <span>Current Balance: <strong>{{ currentPoints }} Points</strong></span>
+        </div>
+    </div>
+
+    <div class="pricing-grid">
+        <div *ngFor="let plan of plans; let i = index" class="pricing-card"
+            [class.popular-card]="plan.name.includes('Growth')" [class.glass-panel]="!plan.name.includes('Growth')"
+            [style.animation-delay]="i * 0.1 + 's'">
+
+            <div class="card-badge" *ngIf="plan.discountDescription">
+                {{ plan.discountDescription }}
+            </div>
+
+            <div class="card-header">
+                <h3>{{ plan.name }}</h3>
+                <div class="price">
+                    <span class="currency">₹</span>
+                    <span class="amount">{{ plan.price }}</span>
+                </div>
+                <div class="points-tag">
+                    <i class="fa-solid fa-bolt"></i> {{ plan.points }} Points
+                </div>
+            </div>
+
+            <ul class="features-list">
+                <li>
+                    <i class="fa-solid fa-check-circle"></i>
+                    <span>Unlock <strong>{{ plan.points }} Leads</strong></span>
+                </li>
+                <li>
+                    <i class="fa-solid fa-check-circle"></i>
+                    <span>Instant Contact Access</span>
+                </li>
+                <li>
+                    <i class="fa-solid fa-check-circle"></i>
+                    <span>Dedicated Support</span>
+                </li>
+                <li>
+                    <i class="fa-solid fa-check-circle"></i>
+                    <span>No Expiry Date</span>
+                </li>
+            </ul>
+
+            <button (click)="buyPlan(plan)" [disabled]="loading" class="btn btn-block"
+                [ngClass]="plan.name.includes('Growth') ? 'btn-primary' : 'btn-secondary'">
+                {{ loading ? 'Processing...' : 'Choose ' + plan.name }}
+            </button>
+        </div>
+    </div>
+
+    <!-- Coupon Section -->
+    <div class="coupon-section glass-panel">
+        <div class="coupon-content">
+            <div class="coupon-icon">
+                <i class="fa-solid fa-tags"></i>
+            </div>
+            <div class="coupon-input-group">
+                <label>Have a promo code?</label>
+                <div class="input-wrapper">
+                    <input [(ngModel)]="couponCode" type="text" placeholder="Enter code (e.g. WELCOME10)">
+                    <button (click)="validateCoupon()" class="btn btn-primary">Apply</button>
+                </div>
+                <p *ngIf="discountMessage" [class.success-msg]="discountMessage.includes('applied')"
+                    [class.error-msg]="!discountMessage.includes('applied')">
+                    {{ discountMessage }}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>

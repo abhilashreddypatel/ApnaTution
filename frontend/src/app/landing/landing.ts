@@ -17,6 +17,7 @@ export class Landing implements OnInit {
   stats = { tutors: 0, students: 0, activeLeads: 0 };
   leads: any[] = [];
   tutors: any[] = [];
+  activeTab: 'PARENT' | 'TUTOR' = 'PARENT';
 
   constructor(private authService: AuthService, private http: HttpClient) { }
 
@@ -51,5 +52,9 @@ export class Landing implements OnInit {
 
   get dashboardLink(): string {
     return this.userRole ? '/dashboard' : '/login';
+  }
+
+  setActiveTab(tab: 'PARENT' | 'TUTOR') {
+    this.activeTab = tab;
   }
 }

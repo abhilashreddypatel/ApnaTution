@@ -86,49 +86,25 @@ export class LeadListComponent implements OnInit {
     }
 
     unlockLead(lead: any) {
-        this.paymentService.createOrder(lead._id).subscribe({
-            next: (order) => {
-                this.openCheckout(order, lead._id);
-            },
-            error: () => alert('Failed to create order')
-        });
-    }
+        if (!confirm('Unlock this lead for 1 Point?')) return;
 
-    openCheckout(order: any, leadId: string) {
-        const options = {
-            key: 'rzp_test_1234567890', // Replace with Env Var in real app
-            amount: order.amount,
-            currency: order.currency,
-            name: 'ApnaTution',
-            description: 'Unlock Lead',
-            order_id: order.id,
-            handler: (response: any) => {
-                this.verifyPayment(response, leadId);
+        this.leadService.unlockLead(lead._id).subscribe({
+            next: (res) => {
+                alert(res.message);
+                lead.isUnlocked = true; // Optimistic update
+                // Optional: Refresh user points in navbar (e.g. via subject)
             },
-            prefill: {
-                name: 'Tutor',
-                email: 'tutor@example.com'
-            },
-            theme: {
-                color: '#3399cc'
+            error: (err) => {
+                if (err.status === 403) {
+                    if (confirm('Insufficient Points. Buy Points now?')) {
+                        // Navigate to buy points
+                        window.location.href = '/tutor/buy-points';
+                        // Or use Router if injected. I'll inject Router.
+                    }
+                } else {
+                    alert(err.error?.message || 'Unlock failed');
+                }
             }
-        };
-
-        const rzp = new Razorpay(options);
-        rzp.open();
-    }
-
-    verifyPayment(response: any, leadId: string) {
-        const payload = {
-            ...response,
-            leadId
-        };
-        this.paymentService.verifyPayment(payload).subscribe({
-            next: () => {
-                alert('Payment Successful! Lead Unlocked.');
-                this.loadLeads(); // Refresh to see unlocked state
-            },
-            error: () => alert('Payment Verification Failed')
         });
     }
 }

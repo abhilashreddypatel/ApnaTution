@@ -4,19 +4,75 @@
   padding: 20px;
   border: 1px solid #ccc;
   border-radius: 5px;
+  background-color: #f9f9f9;
 }
+
+.password-wrapper {
+  position: relative;
+  display: flex;
+}
+
+.password-wrapper input {
+  flex-grow: 1;
+  padding-right: 40px;
+  /* Space for the show/hide button */
+}
+
+.toggle-password {
+  width: auto;
+  margin-top: 0;
+  margin-left: -50px;
+  /* Position inside right edge */
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.8em;
+  padding: 0 10px;
+  height: 100%;
+  position: absolute;
+  right: 0;
+  top: 0;
+  color: #666;
+}
+
+.toggle-password:hover {
+  text-decoration: underline;
+  background: none;
+  color: #333;
+}
+
+.forgot-link {
+  text-align: right;
+  margin-top: 5px;
+  font-size: 0.9em;
+}
+
+.forgot-link a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.forgot-link a:hover {
+  text-decoration: underline;
+}
+
+
+
 .form-group {
   margin-bottom: 15px;
 }
+
 label {
   display: block;
   margin-bottom: 5px;
 }
+
 input {
   width: 100%;
   padding: 8px;
   box-sizing: border-box;
 }
+
 button {
   width: 100%;
   padding: 10px;
@@ -25,9 +81,11 @@ button {
   border: none;
   cursor: pointer;
 }
+
 button:disabled {
   background-color: #ccc;
 }
+
 .error {
   color: red;
   margin-top: 10px;

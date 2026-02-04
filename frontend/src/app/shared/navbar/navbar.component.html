@@ -10,7 +10,7 @@
 
 
         <ng-container *ngIf="isLoggedIn$ | async; else guestLinks">
-            <a routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+
             <!-- Parent Links -->
             <ng-container *ngIf="(role$ | async) === 'PARENT'">
                 <a routerLink="/parent/my-leads" routerLinkActive="active">Leads</a>
@@ -28,7 +28,8 @@
             </ng-container>
 
             <!-- <a routerLink="/profile" routerLinkActive="active">Profile</a> -->
-            <button (click)="logout()">Logout</button>
+            <a routerLink="/dashboard" routerLinkActive="active">Profile</a>
+
         </ng-container>
 
         <ng-template #guestLinks>

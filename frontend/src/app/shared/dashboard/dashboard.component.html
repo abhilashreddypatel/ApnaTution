@@ -45,6 +45,13 @@
                 </div>
             </div>
             <div class="stat-card glass-panel">
+                <div class="stat-icon"><i class="fa-solid fa-coins"></i></div>
+                <div class="stat-info">
+                    <h3>{{ stats.points }}</h3>
+                    <p>Points Balance</p>
+                </div>
+            </div>
+            <div class="stat-card glass-panel">
                 <div class="stat-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
                 <div class="stat-info">
                     <h3>{{ stats.availableLeads }}</h3>
@@ -99,6 +106,10 @@
                     <i class="fa-solid fa-search"></i>
                     <span>Find New Tuitions</span>
                 </a>
+                <a routerLink="/tutor/buy-points" class="action-card glass-panel">
+                    <i class="fa-solid fa-wallet"></i>
+                    <span>Buy Points</span>
+                </a>
                 <a routerLink="/profile" class="action-card glass-panel">
                     <i class="fa-solid fa-user-edit"></i>
                     <span>Update My Profile</span>
@@ -109,6 +120,11 @@
                 <i class="fa-solid fa-gears"></i>
                 <span>Account Settings</span>
             </a>
+
+            <button (click)="logout()" class="action-card glass-panel logout-btn">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Logout</span>
+            </button>
         </div>
     </div>
 </div>

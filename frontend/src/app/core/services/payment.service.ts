@@ -10,8 +10,16 @@ export class PaymentService {
 
     constructor(private http: HttpClient) { }
 
-    createOrder(leadId: string): Observable<any> {
-        return this.http.post(`${this.apiUrl}/create-order`, { leadId });
+    getPlans(): Observable<any[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/plans`);
+    }
+
+    validateCoupon(code: string): Observable<any> {
+        return this.http.post(`${this.apiUrl}/validate-coupon`, { code });
+    }
+
+    createOrder(planId: string, couponCode?: string): Observable<any> {
+        return this.http.post(`${this.apiUrl}/create-order`, { planId, couponCode });
     }
 
     verifyPayment(paymentData: any): Observable<any> {
