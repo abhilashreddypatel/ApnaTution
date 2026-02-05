@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../core/services/auth.service';
+import { API_CONFIG } from '../../core/api.config';
 
 @Component({
   selector: 'app-find-tutors',
@@ -35,7 +36,7 @@ export class FindTutors implements OnInit {
   fetchTutors() {
     console.log('FindTutors: Loading tutors...');
     this.loading = true;
-    this.http.get<any[]>('http://localhost:5000/public/tutors').subscribe({
+    this.http.get<any[]>(`${API_CONFIG.baseUrl}/public/tutors`).subscribe({
       next: (data) => {
         console.log('FindTutors: Tutors data received', data);
         this.tutors = data;

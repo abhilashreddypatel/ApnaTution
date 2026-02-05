@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../core/services/auth.service';
 import { HttpClient } from '@angular/common/http';
+import { API_CONFIG } from '../core/api.config';
 
 @Component({
   selector: 'app-landing',
@@ -32,19 +33,19 @@ export class Landing implements OnInit {
 
   fetchPublicData() {
     // Fetch Global Stats
-    this.http.get<any>('http://localhost:5000/public/stats').subscribe({
+    this.http.get<any>(`${API_CONFIG.baseUrl}/public/stats`).subscribe({
       next: (data) => this.stats = data,
       error: (err) => console.error('Stats error:', err)
     });
 
     // Fetch Recent Leads (for Tutors and Guests)
-    this.http.get<any[]>('http://localhost:5000/public/leads').subscribe({
+    this.http.get<any[]>(`${API_CONFIG.baseUrl}/public/leads`).subscribe({
       next: (data) => this.leads = data,
       error: (err) => console.error('Leads error:', err)
     });
 
     // Fetch Featured Tutors (for Parents)
-    this.http.get<any[]>('http://localhost:5000/public/tutors').subscribe({
+    this.http.get<any[]>(`${API_CONFIG.baseUrl}/public/tutors`).subscribe({
       next: (data) => this.tutors = data.slice(0, 3), // Just top 3
       error: (err) => console.error('Tutors error:', err)
     });

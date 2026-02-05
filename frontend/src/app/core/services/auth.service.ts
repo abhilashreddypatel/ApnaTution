@@ -4,11 +4,13 @@ import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { Router } from '@angular/router';
 import { jwtDecode } from 'jwt-decode';
 
+import { API_CONFIG } from '../api.config';
+
 @Injectable({
     providedIn: 'root'
 })
 export class AuthService {
-    private apiUrl = 'http://localhost:5000/auth';
+    private apiUrl = `${API_CONFIG.baseUrl}/auth`;
     private tokenKey = 'apna_tution_token';
 
     private userSubject = new BehaviorSubject<any>(this.getUserFromToken());
