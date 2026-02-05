@@ -1,4 +1,4 @@
-const User = require("../models/user.model");
+const User = require("../models/user.model.cjs");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
@@ -27,7 +27,8 @@ exports.register = async (req, res) => {
 
         res.status(201).json({ message: "User registered" });
     } catch (err) {
-        res.status(500).json({ message: "Registration failed" });
+        console.error("Registration Error:", err);
+        res.status(500).json({ message: "Registration failed", error: err.message });
     }
 };
 
@@ -89,7 +90,7 @@ exports.updateProfile = async (req, res) => {
     }
 };
 
-const sendEmail = require("../utils/sendEmail");
+const sendEmail = require("../utils/sendEmail.cjs");
 
 exports.forgotPassword = async (req, res) => {
     try {

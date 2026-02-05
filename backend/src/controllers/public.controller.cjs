@@ -1,4 +1,4 @@
-const User = require("../models/user.model");
+const User = require("../models/user.model.cjs");
 
 exports.getTutors = async (req, res) => {
     try {
@@ -14,7 +14,7 @@ exports.getTutors = async (req, res) => {
 
 exports.getPublicStats = async (req, res) => {
     try {
-        const TuitionLead = require("../models/TutionLead.model");
+        const TuitionLead = require("../models/TutionLead.model.cjs");
 
         const totalTutors = await User.countDocuments({ role: 'TUTOR' });
         const totalStudents = await User.countDocuments({ role: 'PARENT' });

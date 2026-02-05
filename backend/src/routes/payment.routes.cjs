@@ -1,14 +1,14 @@
 const express = require("express");
 const router = express.Router();
 
-const auth = require("../middleware/auth.middleware");
-const role = require("../middleware/role.middleware");
+const auth = require("../middleware/auth.middleware.cjs");
+const role = require("../middleware/role.middleware.cjs");
 const {
     createOrder,
     verifyPayment,
     getPlans,
     validateCoupon
-} = require("../controllers/payment.controller");
+} = require("../controllers/payment.controller.cjs");
 
 router.get("/plans", auth, role("TUTOR"), getPlans);
 router.post("/validate-coupon", auth, role("TUTOR"), validateCoupon);

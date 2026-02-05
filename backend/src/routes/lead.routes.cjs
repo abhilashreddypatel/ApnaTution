@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
 
-const auth = require("../middleware/auth.middleware");
-const role = require("../middleware/role.middleware");
+const auth = require("../middleware/auth.middleware.cjs");
+const role = require("../middleware/role.middleware.cjs");
 const {
     createLead,
     getMyLeads,
@@ -10,7 +10,7 @@ const {
     unlockLead,
     updateLead,
     getLeadById
-} = require("../controllers/lead.controller");
+} = require("../controllers/lead.controller.cjs");
 
 console.log("Lead Routes Loaded");  // Debug Log
 
