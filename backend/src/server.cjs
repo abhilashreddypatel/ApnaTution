@@ -12,9 +12,8 @@ const startServer = async () => {
     try {
         await connectDB();
 
-        // Seed logic inside async function
+        // Seed logic (Optional for production, but kept here for now)
         try {
-            // Check if user exists to avoid duplicates or errors on restart
             const userExists = await User.findOne({ email: "test@test.com" });
             if (!userExists) {
                 await User.create({
@@ -29,14 +28,22 @@ const startServer = async () => {
             console.error("Seeding error:", seedErr.message);
         }
 
-        app.listen(PORT, () => {
-            console.log(`Server running on port ${PORT}`);
-        });
+        // Only listen if not in a serverless environment (like Vercel)
+        if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+            app.listen(PORT, () => {
+                console.log(`Server running on port ${PORT}`);
+            });
+        }
     } catch (err) {
         console.error(err);
-        process.exit(1);
+        // Don't exit process in serverless
+        if (!process.env.VERCEL) {
+            process.exit(1);
+        }
     }
 };
 
 startServer();
+
+module.exports = app;
 
