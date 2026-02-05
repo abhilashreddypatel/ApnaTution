@@ -9,8 +9,13 @@ To start a local development server, run:
 ```bash
 ng serve
 ```
+## Vercel Deployment
 
-next
+To deploy this frontend to Vercel:
+1. **Framework Preset**: Angular
+2. **Root Directory**: `frontend`
+3. **Build Command**: `npm run build`
+4. **Output Directory**: `dist`
 
 Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
 

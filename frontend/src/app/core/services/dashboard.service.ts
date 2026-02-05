@@ -2,11 +2,13 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 
+import { API_CONFIG } from '../api.config';
+
 @Injectable({
     providedIn: 'root'
 })
 export class DashboardService {
-    private apiUrl = 'http://localhost:5000/dashboard';
+    private apiUrl = `${API_CONFIG.baseUrl}/dashboard`;
 
     constructor(private http: HttpClient) { }
 
