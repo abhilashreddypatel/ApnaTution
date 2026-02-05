@@ -1,26 +1,30 @@
-const User = require("../models/user.model");
-const SubscriptionPlan = require("../models/SubscriptionPlan.model");
-const Transaction = require("../models/Transaction.model");
-const Coupon = require("../models/Coupon.model");
+const User = require("../models/user.model.cjs");
+const SubscriptionPlan = require("../models/SubscriptionPlan.model.cjs");
+const Transaction = require("../models/Transaction.model.cjs");
+const Coupon = require("../models/Coupon.model.cjs");
 
 // Lazy Seed Plans (for demo purposes)
-const seedPlans = async () => {
-    const plans = await SubscriptionPlan.find();
-    if (plans.length === 0) {
-        await SubscriptionPlan.insertMany([
-            { name: "Starter Pack", price: 500, points: 10, discountDescription: "Standard Rate (50rs/lead)" },
-            { name: "Growth Pack", price: 2000, points: 50, discountDescription: "Save 20% (40rs/lead)" },
-            { name: "Pro Pack", price: 5000, points: 150, discountDescription: "Save 33% (33rs/lead)" }
-        ]);
-        console.log("Plans seeded");
-    }
-    const coupons = await Coupon.find();
-    if (coupons.length === 0) {
-        await Coupon.create({ code: "WELCOME10", discountPercentage: 10, usageLimit: 10000 });
-        console.log("Coupons seeded");
+exports.seedPlans = async () => {
+    try {
+        const plans = await SubscriptionPlan.find();
+        if (plans.length === 0) {
+            await SubscriptionPlan.insertMany([
+                { name: "Starter Pack", price: 500, points: 10, discountDescription: "Standard Rate (50rs/lead)" },
+                { name: "Growth Pack", price: 2000, points: 50, discountDescription: "Save 20% (40rs/lead)" },
+                { name: "Pro Pack", price: 5000, points: 150, discountDescription: "Save 33% (33rs/lead)" }
+            ]);
+            console.log("Plans seeded");
+        }
+        const coupons = await Coupon.find();
+        if (coupons.length === 0) {
+            await Coupon.create({ code: "WELCOME10", discountPercentage: 10, usageLimit: 10000 });
+            console.log("Coupons seeded");
+        }
+    } catch (err) {
+        console.error("Seeding failed", err);
     }
 };
-seedPlans();
+
 
 exports.getPlans = async (req, res) => {
     try {

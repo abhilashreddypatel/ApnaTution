@@ -1,9 +1,9 @@
-const User = require("../models/user.model");
-const SubscriptionPlan = require("../models/SubscriptionPlan.model");
-const Transaction = require("../models/Transaction.model");
-const Coupon = require("../models/Coupon.model");
-const LeadUnlock = require("../models/LeadUnlock.model");
-const TuitionLead = require("../models/TutionLead.model");
+const User = require("../models/user.model.cjs");
+const SubscriptionPlan = require("../models/SubscriptionPlan.model.cjs");
+const Transaction = require("../models/Transaction.model.cjs");
+const Coupon = require("../models/Coupon.model.cjs");
+const LeadUnlock = require("../models/LeadUnlock.model.cjs");
+const TuitionLead = require("../models/TutionLead.model.cjs");
 
 // Lazy Seed Plans (for demo purposes)
 const seedPlans = async () => {

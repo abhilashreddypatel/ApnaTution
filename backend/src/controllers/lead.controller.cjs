@@ -1,6 +1,6 @@
-const TuitionLead = require("../models/TutionLead.model");
-const LeadUnlock = require("../models/LeadUnlock.model");
-const KPIEvent = require("../models/KPIEvent.model");
+const TuitionLead = require("../models/TutionLead.model.cjs");
+const LeadUnlock = require("../models/LeadUnlock.model.cjs");
+const KPIEvent = require("../models/KPIEvent.model.cjs");
 
 exports.createLead = async (req, res) => {
     try {
@@ -58,8 +58,8 @@ exports.unlockLead = async (req, res) => {
     try {
         const tutorId = req.user.id;
         const leadId = req.params.id;
-        const Transaction = require("../models/Transaction.model");
-        const User = require("../models/user.model");
+        const Transaction = require("../models/Transaction.model.cjs");
+        const User = require("../models/user.model.cjs");
 
         const alreadyUnlocked = await LeadUnlock.findOne({ tutorId, leadId });
         if (alreadyUnlocked) {

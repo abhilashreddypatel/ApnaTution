@@ -1,6 +1,6 @@
-const KPIEvent = require("../models/KPIEvent.model");
-const LeadUnlock = require("../models/LeadUnlock.model");
-const TuitionLead = require("../models/TutionLead.model");
+const KPIEvent = require("../models/KPIEvent.model.cjs");
+const LeadUnlock = require("../models/LeadUnlock.model.cjs");
+const TuitionLead = require("../models/TutionLead.model.cjs");
 
 exports.getAdminStats = async (req, res) => {
     try {
@@ -50,7 +50,7 @@ exports.getParentDashboard = async (req, res) => {
 
 exports.getTutorDashboard = async (req, res) => {
     try {
-        const User = require("../models/user.model");
+        const User = require("../models/user.model.cjs");
         const unlockedCount = await LeadUnlock.countDocuments({ tutorId: req.user.id });
         const availableLeads = await TuitionLead.countDocuments({ status: "OPEN" });
 
