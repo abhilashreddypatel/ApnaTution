@@ -1,76 +1,90 @@
-<div class="container animate-fade-in" style="padding: 40px 20px;">
-    <div class="text-center mb-4">
-        <h2 class="section-title">Invest in Your <span class="text-gradient">Growth</span></h2>
-        <p class="section-subtitle">Choose a plan that fits your teaching goals. Unlocked leads are yours forever.</p>
+<div class="buy-points-page container animate-fade-in">
+    <div class="page-header text-center">
+        <h2>Invest in Your <span class="text-gradient">Growth</span></h2>
+        <p class="header-sub">Each point unlocks one tuition lead. No expiry. Pay only for what you need.</p>
 
         <div class="balance-badge glass-panel">
             <i class="fa-solid fa-wallet"></i>
-            <span>Current Balance: <strong>{{ currentPoints }} Points</strong></span>
+            <span>Your Balance: <strong>{{ currentPoints }} Points</strong></span>
         </div>
     </div>
 
-    <div class="pricing-grid">
-        <div *ngFor="let plan of plans; let i = index" class="pricing-card"
-            [class.popular-card]="plan.name.includes('Growth')" [class.glass-panel]="!plan.name.includes('Growth')"
-            [style.animation-delay]="i * 0.1 + 's'">
-
-            <div class="card-badge" *ngIf="plan.discountDescription">
-                {{ plan.discountDescription }}
-            </div>
-
-            <div class="card-header">
-                <h3>{{ plan.name }}</h3>
-                <div class="price">
-                    <span class="currency">₹</span>
-                    <span class="amount">{{ plan.price }}</span>
-                </div>
-                <div class="points-tag">
-                    <i class="fa-solid fa-bolt"></i> {{ plan.points }} Points
-                </div>
-            </div>
-
-            <ul class="features-list">
-                <li>
-                    <i class="fa-solid fa-check-circle"></i>
-                    <span>Unlock <strong>{{ plan.points }} Leads</strong></span>
-                </li>
-                <li>
-                    <i class="fa-solid fa-check-circle"></i>
-                    <span>Instant Contact Access</span>
-                </li>
-                <li>
-                    <i class="fa-solid fa-check-circle"></i>
-                    <span>Dedicated Support</span>
-                </li>
-                <li>
-                    <i class="fa-solid fa-check-circle"></i>
-                    <span>No Expiry Date</span>
-                </li>
-            </ul>
-
-            <button (click)="buyPlan(plan)" [disabled]="loading" class="btn btn-block"
-                [ngClass]="plan.name.includes('Growth') ? 'btn-primary' : 'btn-secondary'">
-                {{ loading ? 'Processing...' : 'Choose ' + plan.name }}
-            </button>
+    <!-- Loading Plans -->
+    @if (plans.length === 0) {
+        <div class="loading-state">
+            <i class="fa-solid fa-circle-notch fa-spin"></i>
+            <p>Loading plans...</p>
         </div>
+    }
+
+    <!-- Pricing Grid -->
+    <div class="pricing-grid">
+        @for (plan of plans; track plan._id; let i = $index) {
+            <div class="pricing-card"
+                [class.popular-card]="plan.name.includes('Growth')"
+                [class.glass-panel]="!plan.name.includes('Growth')"
+                [style.animation-delay]="i * 0.1 + 's'">
+
+                @if (plan.name.includes('Growth')) {
+                    <div class="popular-ribbon">Most Popular</div>
+                }
+
+                <div class="card-badge">{{ plan.discountDescription }}</div>
+
+                <div class="card-header-inner">
+                    <h3>{{ plan.name }}</h3>
+                    <div class="price">
+                        <span class="currency">₹</span>
+                        <span class="amount">{{ plan.price }}</span>
+                    </div>
+                    <div class="points-tag">
+                        <i class="fa-solid fa-bolt"></i> {{ plan.points }} Points
+                    </div>
+                </div>
+
+                <ul class="features-list">
+                    <li><i class="fa-solid fa-circle-check"></i> Unlock <strong>{{ plan.points }} leads</strong></li>
+                    <li><i class="fa-solid fa-circle-check"></i> Reveal parent phone & email</li>
+                    <li><i class="fa-solid fa-circle-check"></i> Points never expire</li>
+                    <li><i class="fa-solid fa-circle-check"></i> Instant access after payment</li>
+                </ul>
+
+                <button (click)="buyPlan(plan)" [disabled]="loading" class="btn-buy"
+                    [class.btn-buy-primary]="plan.name.includes('Growth')"
+                    [class.btn-buy-secondary]="!plan.name.includes('Growth')">
+                    @if (loading) {
+                        <i class="fa-solid fa-circle-notch fa-spin"></i> Processing...
+                    } @else {
+                        Buy {{ plan.name }}
+                    }
+                </button>
+            </div>
+        }
     </div>
 
     <!-- Coupon Section -->
     <div class="coupon-section glass-panel">
         <div class="coupon-content">
             <div class="coupon-icon">
-                <i class="fa-solid fa-tags"></i>
+                <i class="fa-solid fa-tag"></i>
             </div>
-            <div class="coupon-input-group">
+            <div class="coupon-body">
                 <label>Have a promo code?</label>
-                <div class="input-wrapper">
-                    <input [(ngModel)]="couponCode" type="text" placeholder="Enter code (e.g. WELCOME10)">
-                    <button (click)="validateCoupon()" class="btn btn-primary">Apply</button>
+                <div class="coupon-input-row">
+                    <input [(ngModel)]="couponCode" type="text"
+                        placeholder="Enter code (e.g. WELCOME10)"
+                        (keyup.enter)="validateCoupon()">
+                    <button (click)="validateCoupon()" class="btn-apply" [disabled]="!couponCode">
+                        Apply
+                    </button>
                 </div>
-                <p *ngIf="discountMessage" [class.success-msg]="discountMessage.includes('applied')"
-                    [class.error-msg]="!discountMessage.includes('applied')">
-                    {{ discountMessage }}
-                </p>
+                @if (discountMessage) {
+                    <p class="coupon-msg" [class.msg-success]="discountMessage.includes('applied')"
+                        [class.msg-error]="!discountMessage.includes('applied')">
+                        <i [class]="discountMessage.includes('applied') ? 'fa-solid fa-circle-check' : 'fa-solid fa-circle-xmark'"></i>
+                        {{ discountMessage }}
+                    </p>
+                }
             </div>
         </div>
     </div>

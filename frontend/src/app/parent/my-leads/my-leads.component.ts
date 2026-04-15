@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { LeadService } from '../../core/services/lead.service';
@@ -12,22 +12,18 @@ import { LeadService } from '../../core/services/lead.service';
 })
 export class MyLeadsComponent implements OnInit {
     leads: any[] = [];
+    loading = true;
 
-    constructor(
-        private leadService: LeadService,
-        private cdr: ChangeDetectorRef
-    ) { }
+    constructor(private leadService: LeadService) {}
 
     ngOnInit() {
-        console.log('MyLeadsComponent: Loading leads...');
         this.leadService.getMyLeads().subscribe({
             next: (data) => {
-                console.log('MyLeadsComponent: Leads received', data);
                 this.leads = data;
-                this.cdr.detectChanges();
+                this.loading = false;
             },
-            error: (err) => {
-                console.error('MyLeadsComponent: Error loading leads', err);
+            error: () => {
+                this.loading = false;
             }
         });
     }

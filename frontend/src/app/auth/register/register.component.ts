@@ -14,6 +14,8 @@ import { AuthService } from '../../core/services/auth.service';
 export class RegisterComponent {
     registerForm: FormGroup;
     error: string = '';
+    loading = false;
+    showPassword = false;
 
     constructor(
         private fb: FormBuilder,
@@ -21,30 +23,52 @@ export class RegisterComponent {
         private router: Router
     ) {
         this.registerForm = this.fb.group({
-            role: ['PARENT', Validators.required],
-            name: ['', Validators.required],
-            email: ['', [Validators.required, Validators.email]],
+            role:     ['PARENT', Validators.required],
+            name:     ['', [Validators.required, Validators.minLength(2)]],
+            email:    ['', [Validators.required, Validators.email]],
             password: ['', [Validators.required, Validators.minLength(6)]],
+            phone:    [''],
             subjects: [''],
             location: ['']
         });
     }
 
-    onSubmit() {
-        if (this.registerForm.valid) {
-            const formData = { ...this.registerForm.value };
-            if (formData.role === 'TUTOR' && formData.subjects) {
-                formData.subjects = formData.subjects.split(',').map((s: string) => s.trim());
-            }
+    get selectedRole() {
+        return this.registerForm.get('role')?.value;
+    }
 
-            this.authService.register(formData).subscribe({
-                next: () => {
-                    this.router.navigate(['/login']);
-                },
-                error: (err) => {
-                    this.error = 'Registration failed. Email might be taken.';
-                }
-            });
+    togglePassword() {
+        this.showPassword = !this.showPassword;
+    }
+
+    onSubmit() {
+        if (this.registerForm.invalid) {
+            this.registerForm.markAllAsTouched();
+            return;
         }
+
+        this.loading = true;
+        this.error = '';
+
+        const formData = { ...this.registerForm.value };
+        if (formData.role === 'TUTOR' && formData.subjects) {
+            formData.subjects = formData.subjects
+                .split(',')
+                .map((s: string) => s.trim())
+                .filter(Boolean);
+        }
+
+        this.authService.register(formData).subscribe({
+            next: () => {
+                this.loading = false;
+                this.router.navigate(['/login'], {
+                    queryParams: { registered: '1' }
+                });
+            },
+            error: (err) => {
+                this.loading = false;
+                this.error = err.error?.message || 'Registration failed. Please try again.';
+            }
+        });
     }
 }

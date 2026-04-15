@@ -5,7 +5,7 @@ import { Router } from '@angular/router';
 import { PaymentService } from '../../core/services/payment.service';
 import { AuthService } from '../../core/services/auth.service';
 
-declare var Razorpay: any; // Or use window.Razorpay if types not avail
+declare var Razorpay: any;
 
 @Component({
     selector: 'app-buy-points',
@@ -16,8 +16,8 @@ declare var Razorpay: any; // Or use window.Razorpay if types not avail
 })
 export class BuyPointsComponent implements OnInit {
     plans: any[] = [];
-    couponCode: string = '';
-    discountMessage: string = '';
+    couponCode = '';
+    discountMessage = '';
     loading = false;
     currentPoints = 0;
 
@@ -25,34 +25,27 @@ export class BuyPointsComponent implements OnInit {
         private paymentService: PaymentService,
         private authService: AuthService,
         private router: Router
-    ) { }
+    ) {}
 
     ngOnInit(): void {
-        this.fetchPlans();
-        // Fetch fresh profile to get accurate points
-        this.authService.getProfile().subscribe({
-            next: (user) => {
-                this.currentPoints = user.points || 0;
-            },
-            error: () => this.currentPoints = 0
-        });
-    }
-
-    fetchPlans(): void {
         this.paymentService.getPlans().subscribe({
             next: (data) => this.plans = data,
-            error: (err) => console.error(err)
+            error: () => {}
+        });
+        this.authService.getProfile().subscribe({
+            next: (user) => this.currentPoints = user.points || 0,
+            error: () => {}
         });
     }
 
     validateCoupon(): void {
-        if (!this.couponCode) return;
+        if (!this.couponCode.trim()) return;
         this.paymentService.validateCoupon(this.couponCode).subscribe({
             next: (res) => {
-                this.discountMessage = `Coupon applied! ${res.discountPercentage}% off`;
+                this.discountMessage = `Coupon applied! ${res.discountPercentage}% discount`;
             },
             error: (err) => {
-                this.discountMessage = 'Invalid or expired coupon';
+                this.discountMessage = err.error?.message || 'Invalid or expired coupon';
                 this.couponCode = '';
             }
         });
@@ -60,27 +53,34 @@ export class BuyPointsComponent implements OnInit {
 
     buyPlan(plan: any): void {
         this.loading = true;
-        this.paymentService.createOrder(plan._id, this.couponCode).subscribe({
-            next: (order) => {
-                this.initiateRazorpay(order);
-            },
-            error: (err) => {
-                console.error('Order creation failed', err);
+        this.paymentService.createOrder(plan._id, this.couponCode || undefined).subscribe({
+            next: (order) => this.initiateRazorpay(order),
+            error: () => {
                 this.loading = false;
-                alert('Failed to initiate purchase');
             }
         });
     }
 
     initiateRazorpay(order: any): void {
         const user = this.authService.getUserFromToken();
+
+        // If Razorpay SDK isn't loaded (dev/testing), simulate payment
+        if (typeof Razorpay === 'undefined') {
+            if (confirm(`[DEV] Simulate payment of ₹${order.amount} for ${order.points} points?`)) {
+                this.verifyPayment({ transactionId: order.transactionId });
+            } else {
+                this.loading = false;
+            }
+            return;
+        }
+
         const options = {
-            key: 'rzp_test_placeholder', // Should be from env
-            amount: order.amount * 100, // paise if not already
-            currency: 'INR',
+            key: 'rzp_test_placeholder', // Replace with real Razorpay key from env
+            amount: order.amount * 100,
+            currency: order.currency || 'INR',
             name: 'ApnaTution',
-            description: 'Buy Points',
-            order_id: order.paymentId, // The TransactionID or specific Razorpay Order ID if strictly typed
+            description: `${order.planName} — ${order.points} Points`,
+            order_id: order.paymentId,
             handler: (response: any) => {
                 this.verifyPayment({
                     transactionId: order.transactionId,
@@ -88,23 +88,12 @@ export class BuyPointsComponent implements OnInit {
                     razorpay_signature: response.razorpay_signature
                 });
             },
-            prefill: {
-                name: user?.name,
-                email: user?.email
-            },
-            theme: { color: '#3399cc' }
-        };
-
-        // MOCKING RAZORPAY if not loaded
-        if (typeof Razorpay === 'undefined') {
-            console.warn("Razorpay SDK not loaded. Simulating success.");
-            if (confirm("Simulate Payment Success?")) {
-                this.verifyPayment({ transactionId: order.transactionId });
-            } else {
-                this.loading = false;
+            prefill: { name: user?.name, email: user?.email },
+            theme: { color: '#2563eb' },
+            modal: {
+                ondismiss: () => { this.loading = false; }
             }
-            return;
-        }
+        };
 
         const rzp = new Razorpay(options);
         rzp.open();
@@ -113,14 +102,12 @@ export class BuyPointsComponent implements OnInit {
     verifyPayment(data: any): void {
         this.paymentService.verifyPayment(data).subscribe({
             next: (res) => {
-                alert('Payment Successful! Points added.');
+                this.currentPoints = res.points;
                 this.loading = false;
-                this.router.navigate(['/tutor/leads']); // Redirect to leads to use points
+                this.router.navigate(['/tutor/leads']);
             },
-            error: (err) => {
-                console.error(err);
+            error: () => {
                 this.loading = false;
-                alert('Payment Verification Failed');
             }
         });
     }

@@ -1,31 +1,94 @@
-<div class="container animate-fade-in">
-    <div class="flex justify-between items-center mb-2">
-        <h2>My Leads</h2>
+<div class="my-leads-page container animate-fade-in">
+
+    <div class="page-header">
+        <div>
+            <h2>My Requirements</h2>
+            <p>Manage your tuition requirements and track tutor interest.</p>
+        </div>
         <a routerLink="/parent/create-lead" class="btn btn-primary">
-            <i class="fa-solid fa-plus"></i> Post New Lead
+            <i class="fa-solid fa-plus"></i> Post New Requirement
         </a>
     </div>
 
-    <div *ngIf="leads.length === 0" class="empty-state">
-        <h3>No leads posted yet.</h3>
-        <p>Post your first tuition requirement to find the best tutors!</p>
-    </div>
-
-    <div *ngFor="let lead of leads" class="lead-card">
-        <div class="flex justify-between items-center mb-1">
-            <h3>{{ lead.title }}</h3>
-            <span class="status-badge" [class.status-open]="lead.status === 'OPEN'"
-                [class.status-closed]="lead.status === 'CLOSED'">
-                {{ lead.status }}
-            </span>
+    @if (leads.length === 0 && !loading) {
+        <div class="empty-state glass-panel">
+            <i class="fa-solid fa-clipboard-list"></i>
+            <h3>No requirements posted yet</h3>
+            <p>Post your first tuition requirement to connect with qualified tutors in your area.</p>
+            <a routerLink="/parent/create-lead" class="btn btn-primary mt-1">
+                <i class="fa-solid fa-plus"></i> Post Your First Requirement
+            </a>
         </div>
+    }
 
-        <p><strong>Subject:</strong> {{ lead.subjects.join(', ') }}</p>
-        <p><strong>Class:</strong> {{ lead.classLevel }} | {{ lead.mode }}</p>
-        <p *ngIf="lead.location"><strong>Location:</strong> {{ lead.location }}</p>
-
-        <div class="card-actions mt-3">
-            <a [routerLink]="['/parent/edit-lead', lead._id]" class="btn-xs btn-outline">Edit</a>
+    @if (loading) {
+        <div class="loading-state">
+            <i class="fa-solid fa-circle-notch fa-spin"></i>
+            <p>Loading your requirements...</p>
         </div>
+    }
+
+    <div class="leads-list">
+        @for (lead of leads; track lead._id) {
+            <div class="lead-card glass-panel">
+                <div class="card-top">
+                    <div class="lead-main">
+                        <div class="lead-title-row">
+                            <h3>{{ lead.title }}</h3>
+                            <span class="status-badge"
+                                [class.badge-open]="lead.status === 'OPEN'"
+                                [class.badge-closed]="lead.status === 'CLOSED'">
+                                {{ lead.status === 'OPEN' ? 'Active' : 'Closed' }}
+                            </span>
+                        </div>
+                        <div class="lead-meta">
+                            <span class="meta-item">
+                                <i class="fa-solid fa-graduation-cap"></i> {{ lead.classLevel }}
+                            </span>
+                            <span class="meta-item">
+                                <i class="fa-solid fa-book"></i> {{ lead.subjects?.join(', ') }}
+                            </span>
+                            <span class="meta-item mode-item" [class]="'mode-' + lead.mode?.toLowerCase()">
+                                <i class="fa-solid fa-wifi"></i> {{ lead.mode }}
+                            </span>
+                            @if (lead.location) {
+                                <span class="meta-item">
+                                    <i class="fa-solid fa-location-dot"></i> {{ lead.location }}
+                                </span>
+                            }
+                            @if (lead.budgetRange) {
+                                <span class="meta-item">
+                                    <i class="fa-solid fa-rupee-sign"></i> {{ lead.budgetRange }}
+                                </span>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- Interest Counter -->
+                    <div class="interest-counter">
+                        <div class="interest-num">{{ lead.interestCount || 0 }}</div>
+                        <div class="interest-label">
+                            {{ (lead.interestCount || 0) === 1 ? 'Tutor Interested' : 'Tutors Interested' }}
+                        </div>
+                    </div>
+                </div>
+
+                @if (lead.description) {
+                    <p class="lead-desc">{{ lead.description }}</p>
+                }
+
+                <div class="card-actions">
+                    <span class="posted-date">
+                        <i class="fa-regular fa-clock"></i>
+                        Posted {{ lead.createdAt | date:'dd MMM yyyy' }}
+                    </span>
+                    @if (lead.status === 'OPEN') {
+                        <a [routerLink]="['/parent/edit-lead', lead._id]" class="btn btn-outline-sm">
+                            <i class="fa-solid fa-pen"></i> Edit
+                        </a>
+                    }
+                </div>
+            </div>
+        }
     </div>
 </div>

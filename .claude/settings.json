@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s -X POST http://localhost:5000/auth/login -H \"Content-Type: application/json\" -d \"{\\\\\"email\\\\\":\\\\\"parent@demo.com\\\\\",\\\\\"password\\\\\":\\\\\"Demo@1234\\\\\"}\")"
+    ]
+  }
+}

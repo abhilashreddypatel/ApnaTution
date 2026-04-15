@@ -1,47 +1,100 @@
-<div class="container animate-fade-in">
-    <h2>{{ isEditMode ? 'Edit Tuition Requirement' : 'Post a Tuition Requirement' }}</h2>
-    <form [formGroup]="leadForm" (ngSubmit)="onSubmit()">
-        <div class="form-group">
-            <label>Title</label>
-            <input formControlName="title" placeholder="e.g. Need Math Tutor for Class 10" required>
-        </div>
+<div class="create-lead-page container animate-fade-in">
+    <div class="page-header">
+        <a routerLink="/parent/my-leads" class="back-link">
+            <i class="fa-solid fa-arrow-left"></i> Back to My Leads
+        </a>
+        <h2>{{ isEditMode ? 'Edit Requirement' : 'Post a Tuition Requirement' }}</h2>
+        <p>{{ isEditMode ? 'Update your tuition requirement details.' : 'Tell tutors exactly what you need. It\'s completely free.' }}</p>
+    </div>
 
-        <div class="form-group">
-            <label>Subjects (comma separated)</label>
-            <input formControlName="subjects" placeholder="Math, Science" required>
+    @if (loading) {
+        <div class="loading-state">
+            <i class="fa-solid fa-circle-notch fa-spin"></i>
+            <p>Loading...</p>
         </div>
+    }
 
-        <div class="form-group">
-            <label>Class Level</label>
-            <input formControlName="classLevel" placeholder="10" required>
-        </div>
+    @if (!loading) {
+        <form [formGroup]="leadForm" (ngSubmit)="onSubmit()" class="lead-form glass-panel">
 
-        <div class="form-group">
-            <label>Mode</label>
-            <select formControlName="mode">
-                <option value="ONLINE">Online</option>
-                <option value="HOME">Home</option>
-                <option value="BOTH">Both</option>
-            </select>
-        </div>
+            <div class="form-group" [class.has-error]="leadForm.get('title')?.invalid && leadForm.get('title')?.touched">
+                <label>Requirement Title *</label>
+                <input type="text" formControlName="title"
+                    placeholder="e.g. Need Maths Tutor for Class 10 CBSE">
+                @if (leadForm.get('title')?.invalid && leadForm.get('title')?.touched) {
+                    <span class="field-error">Title is required</span>
+                }
+            </div>
 
-        <div class="form-group">
-            <label>Location</label>
-            <input formControlName="location">
-        </div>
+            <div class="form-row-2">
+                <div class="form-group" [class.has-error]="leadForm.get('subjects')?.invalid && leadForm.get('subjects')?.touched">
+                    <label>Subjects Needed *</label>
+                    <input type="text" formControlName="subjects"
+                        placeholder="e.g. Mathematics, Physics">
+                    <span class="field-hint">Separate multiple subjects with commas</span>
+                    @if (leadForm.get('subjects')?.invalid && leadForm.get('subjects')?.touched) {
+                        <span class="field-error">At least one subject is required</span>
+                    }
+                </div>
 
-        <div class="form-group">
-            <label>Budget Range</label>
-            <input formControlName="budgetRange" placeholder="3000-5000">
-        </div>
+                <div class="form-group" [class.has-error]="leadForm.get('classLevel')?.invalid && leadForm.get('classLevel')?.touched">
+                    <label>Class / Grade Level *</label>
+                    <input type="text" formControlName="classLevel"
+                        placeholder="e.g. Class 10, Class 12, JEE, NEET">
+                    @if (leadForm.get('classLevel')?.invalid && leadForm.get('classLevel')?.touched) {
+                        <span class="field-error">Class level is required</span>
+                    }
+                </div>
+            </div>
 
-        <div class="form-group">
-            <label>Description</label>
-            <textarea formControlName="description"></textarea>
-        </div>
+            <div class="form-row-2">
+                <div class="form-group">
+                    <label>Teaching Mode *</label>
+                    <select formControlName="mode">
+                        <option value="ONLINE">Online (video call)</option>
+                        <option value="HOME">Home Tuition (tutor visits)</option>
+                        <option value="BOTH">Both options acceptable</option>
+                    </select>
+                </div>
 
-        <button type="submit" [disabled]="loading">
-            {{ loading ? 'Saving...' : (isEditMode ? 'Update Lead' : 'Post Lead') }}
-        </button>
-    </form>
+                <div class="form-group">
+                    <label>Location / City</label>
+                    <input type="text" formControlName="location"
+                        placeholder="e.g. Andheri West, Mumbai">
+                    <span class="field-hint">Required for home tuition</span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Budget / Expected Rate</label>
+                <input type="text" formControlName="budgetRange"
+                    placeholder="e.g. ₹5000-8000/month or ₹500/hr">
+            </div>
+
+            <div class="form-group">
+                <label>Additional Details</label>
+                <textarea formControlName="description" rows="4"
+                    placeholder="Describe your requirements — preferred timing, specific topics, any other details that will help tutors understand your needs..."></textarea>
+            </div>
+
+            @if (errorMsg) {
+                <div class="error-alert">
+                    <i class="fa-solid fa-circle-exclamation"></i> {{ errorMsg }}
+                </div>
+            }
+
+            <div class="form-actions">
+                <a routerLink="/parent/my-leads" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary" [disabled]="submitting">
+                    @if (submitting) {
+                        <i class="fa-solid fa-circle-notch fa-spin"></i> Saving...
+                    } @else if (isEditMode) {
+                        <i class="fa-solid fa-save"></i> Update Requirement
+                    } @else {
+                        <i class="fa-solid fa-paper-plane"></i> Post Requirement
+                    }
+                </button>
+            </div>
+        </form>
+    }
 </div>

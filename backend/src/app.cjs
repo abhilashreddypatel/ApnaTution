@@ -1,43 +1,76 @@
+require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-
-const authRoutes = require("./routes/auth.routes.cjs");
+const connectDB = require("./config/db.cjs");
+const { seedPlans } = require("./controllers/payment.controller.cjs");
 
 const app = express();
 
-const connectDB = require("./config/db.cjs");
+// Allowed origins
+const allowedOrigins = [
+    "http://localhost:4200",
+    "http://localhost:3000",
+    "https://apna-tution.vercel.app",
+    "https://apnatution.vercel.app",
+    process.env.FRONTEND_URL,
+].filter(Boolean);
 
-const { seedPlans } = require("./controllers/payment.controller.cjs");
+app.use(cors({
+    origin: (origin, callback) => {
+        // Allow requests with no origin (mobile apps, Postman, curl)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin)) return callback(null, true);
+        return callback(new Error(`CORS: Origin ${origin} not allowed`));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+}));
 
-app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "10kb" }));
+app.use(express.urlencoded({ extended: true }));
 
-// Database connection middleware for serverless compatibility
+// DB + Seed middleware (serverless safe - reuses connection)
+let seeded = false;
 app.use(async (req, res, next) => {
     try {
         await connectDB();
-        await seedPlans(); // Ensure plans are seeded
+        if (!seeded) {
+            await seedPlans();
+            seeded = true;
+        }
         next();
     } catch (err) {
-        console.error("Critical Database Error:", err.message);
+        console.error("Startup Error:", err.message);
         res.status(500).json({
-            message: "Database connection error",
-            error: err.message,
-            tip: "Check your MongoDB Atlas IP Whitelist and .env credentials."
+            message: "Service temporarily unavailable",
+            tip: "Check MongoDB Atlas IP Whitelist and environment variables."
         });
     }
 });
 
-
+// Health check
 app.get("/health", (req, res) => {
-    res.json({ status: "UP" });
+    res.json({ status: "UP", timestamp: new Date().toISOString() });
 });
 
-app.use("/auth", authRoutes);
-app.use("/leads", require("./routes/lead.routes.cjs"));
-app.use("/admin", require("./routes/admin.routes.cjs"));
-app.use("/payments", require("./routes/payment.routes.cjs"));
-app.use("/public", require("./routes/public.routes.cjs"));
-app.use("/dashboard", require("./routes/dashboard.routes.cjs"));
+// Routes
+app.use("/auth",       require("./routes/auth.routes.cjs"));
+app.use("/leads",      require("./routes/lead.routes.cjs"));
+app.use("/admin",      require("./routes/admin.routes.cjs"));
+app.use("/payments",   require("./routes/payment.routes.cjs"));
+app.use("/public",     require("./routes/public.routes.cjs"));
+app.use("/dashboard",  require("./routes/dashboard.routes.cjs"));
+
+// 404 handler
+app.use((req, res) => {
+    res.status(404).json({ message: `Route ${req.method} ${req.originalUrl} not found` });
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+    console.error("Unhandled Error:", err);
+    res.status(500).json({ message: "Internal server error" });
+});
 
 module.exports = app;
