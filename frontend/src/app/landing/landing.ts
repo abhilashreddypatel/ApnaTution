@@ -20,34 +20,31 @@ export class Landing implements OnInit {
   tutors: any[] = [];
   activeTab: 'PARENT' | 'TUTOR' = 'PARENT';
 
-  constructor(private authService: AuthService, private http: HttpClient) { }
+  constructor(private authService: AuthService, private http: HttpClient) {}
 
   ngOnInit() {
     this.authService.user$.subscribe(user => {
-      this.userRole = user ? user.role : null;
-      this.userName = user ? user.name : '';
+      this.userRole = user?.role ?? null;
+      // Name is now included in the JWT payload
+      this.userName = user?.name ?? '';
     });
-
     this.fetchPublicData();
   }
 
   fetchPublicData() {
-    // Fetch Global Stats
     this.http.get<any>(`${API_CONFIG.baseUrl}/public/stats`).subscribe({
       next: (data) => this.stats = data,
-      error: (err) => console.error('Stats error:', err)
+      error: () => {}
     });
 
-    // Fetch Recent Leads (for Tutors and Guests)
     this.http.get<any[]>(`${API_CONFIG.baseUrl}/public/leads`).subscribe({
       next: (data) => this.leads = data,
-      error: (err) => console.error('Leads error:', err)
+      error: () => {}
     });
 
-    // Fetch Featured Tutors (for Parents)
     this.http.get<any[]>(`${API_CONFIG.baseUrl}/public/tutors`).subscribe({
-      next: (data) => this.tutors = data.slice(0, 3), // Just top 3
-      error: (err) => console.error('Tutors error:', err)
+      next: (data) => this.tutors = data.slice(0, 3),
+      error: () => {}
     });
   }
 

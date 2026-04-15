@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep -v \"//.*console\")",
+      "Bash(ls c:/Users/LENOVO/Documents/GitHub/ApnaTution/backend/.env*)",
+      "Bash(node src/server.cjs)",
+      "Bash(curl -s http://localhost:5000/health)",
+      "Bash(node -e ':*)"
+    ]
+  }
+}

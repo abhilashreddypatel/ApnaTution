@@ -12,18 +12,12 @@ const {
     getLeadById
 } = require("../controllers/lead.controller.cjs");
 
-console.log("Lead Routes Loaded");  // Debug Log
-
-router.get("/test-debug", (req, res) => res.send("Debug Route Works"));
-
-router.post("/", auth, role("PARENT"), createLead);
-router.get("/my", auth, role("PARENT"), getMyLeads);
-
-router.get("/", auth, role("TUTOR"), getLeadsForTutor);
-router.post("/:id/unlock", auth, role("TUTOR"), unlockLead);
-
-// Generic ID routes last
-router.get("/:id", auth, role("PARENT"), getLeadById);
-router.put("/:id", auth, role("PARENT"), updateLead);
+// Specific paths must come before wildcard /:id routes
+router.get("/my",           auth, role("PARENT"), getMyLeads);         // Parent: my leads
+router.get("/",             auth, role("TUTOR"),  getLeadsForTutor);   // Tutor: all open leads
+router.post("/",            auth, role("PARENT"), createLead);          // Parent: create lead
+router.post("/:id/unlock",  auth, role("TUTOR"),  unlockLead);         // Tutor: unlock lead
+router.get("/:id",          auth, role("PARENT"), getLeadById);        // Parent: get one lead
+router.put("/:id",          auth, role("PARENT"), updateLead);         // Parent: update lead
 
 module.exports = router;

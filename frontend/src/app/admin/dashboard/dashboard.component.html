@@ -1,27 +1,46 @@
-<div class="container">
-    <h2>Admin Dashboard</h2>
-
-    <div class="stats-grid">
-        <div class="card">
-            <h3>Total Leads</h3>
-            <p class="number">{{ stats?.totalLeads || 0 }}</p>
-        </div>
-        <div class="card">
-            <h3>Open Leads</h3>
-            <p class="number">{{ stats?.openLeads || 0 }}</p>
-        </div>
-        <div class="card">
-            <h3>Revenue</h3>
-            <p class="number">₹{{ stats?.revenue || 0 }}</p>
-        </div>
-        <div class="card">
-            <h3>Unlocks</h3>
-            <p class="number">{{ stats?.unlockEvents || 0 }}</p>
-        </div>
+<div class="admin-page container animate-fade-in">
+    <div class="admin-header">
+        <h2>Admin Dashboard</h2>
+        <p>Platform overview and key metrics</p>
     </div>
 
-    <div class="actions">
-        <h3>Quick Actions</h3>
-        <p>Lead Moderation is handled via API currently. UI coming soon.</p>
-    </div>
+    @if (!stats) {
+        <div class="loading-state">
+            <i class="fa-solid fa-circle-notch fa-spin"></i>
+            <p>Loading stats...</p>
+        </div>
+    }
+
+    @if (stats) {
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon primary"><i class="fa-solid fa-file-lines"></i></div>
+                <div class="stat-body">
+                    <div class="stat-num">{{ stats.totalLeads }}</div>
+                    <div class="stat-label">Total Leads</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green"><i class="fa-solid fa-bolt"></i></div>
+                <div class="stat-body">
+                    <div class="stat-num">{{ stats.openLeads }}</div>
+                    <div class="stat-label">Open Leads</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon purple"><i class="fa-solid fa-lock-open"></i></div>
+                <div class="stat-body">
+                    <div class="stat-num">{{ stats.totalUnlocks }}</div>
+                    <div class="stat-label">Total Unlocks</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon orange"><i class="fa-solid fa-rupee-sign"></i></div>
+                <div class="stat-body">
+                    <div class="stat-num">{{ stats.revenue }}</div>
+                    <div class="stat-label">Revenue (Points)</div>
+                </div>
+            </div>
+        </div>
+    }
 </div>

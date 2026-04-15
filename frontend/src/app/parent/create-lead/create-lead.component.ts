@@ -1,13 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, RouterLink } from '@angular/router';
 import { LeadService } from '../../core/services/lead.service';
 
 @Component({
     selector: 'app-create-lead',
     standalone: true,
-    imports: [CommonModule, ReactiveFormsModule],
+    imports: [CommonModule, ReactiveFormsModule, RouterLink],
     templateUrl: './create-lead.component.html',
     styleUrl: './create-lead.component.css'
 })
@@ -15,7 +15,9 @@ export class CreateLeadComponent implements OnInit {
     leadForm: FormGroup;
     isEditMode = false;
     leadId: string | null = null;
-    loading = false;
+    loading = false;      // loading existing lead for edit
+    submitting = false;   // form submission in progress
+    errorMsg = '';
 
     constructor(
         private fb: FormBuilder,
@@ -24,11 +26,11 @@ export class CreateLeadComponent implements OnInit {
         private route: ActivatedRoute
     ) {
         this.leadForm = this.fb.group({
-            title: ['', Validators.required],
-            subjects: ['', Validators.required],
-            classLevel: ['', Validators.required],
-            mode: ['ONLINE', Validators.required],
-            location: [''],
+            title:       ['', Validators.required],
+            subjects:    ['', Validators.required],
+            classLevel:  ['', Validators.required],
+            mode:        ['ONLINE', Validators.required],
+            location:    [''],
             budgetRange: [''],
             description: ['']
         });
@@ -46,63 +48,60 @@ export class CreateLeadComponent implements OnInit {
         this.loading = true;
         this.leadService.getLead(id).subscribe({
             next: (lead) => {
-                // Convert array to comma-string for display
-                const subjectsStr = lead.subjects ? lead.subjects.join(', ') : '';
-                this.leadForm.patchValue({
-                    ...lead,
-                    subjects: subjectsStr
-                });
+                const subjectsStr = Array.isArray(lead.subjects) ? lead.subjects.join(', ') : (lead.subjects || '');
+                this.leadForm.patchValue({ ...lead, subjects: subjectsStr });
                 this.loading = false;
             },
             error: (err) => {
-                console.error('Load Error:', err);
-                const status = err.status === 404 ? 'Lead not found or server outdated.' : err.statusText;
-                alert(`Failed to load lead: ${status}. \n\nIMPORTANT: If you just added this feature, please RESTART the backend server.`);
                 this.loading = false;
-                this.router.navigate(['/parent/my-leads']);
+                const msg = err.error?.message || 'Failed to load lead';
+                this.errorMsg = msg;
+                setTimeout(() => this.router.navigate(['/parent/my-leads']), 2000);
             }
         });
     }
 
     onSubmit() {
         if (this.leadForm.invalid) {
-            alert('Please fill all required fields correctly.');
             this.leadForm.markAllAsTouched();
             return;
         }
 
         const formVal = this.leadForm.value;
-        const subjectsArray = formVal.subjects.split(',').map((s: string) => s.trim());
-        if (subjectsArray.length === 0 || subjectsArray[0] === '') {
-            alert('Please enter at least one subject.');
+        const subjectsArray = formVal.subjects
+            .split(',')
+            .map((s: string) => s.trim())
+            .filter(Boolean);
+
+        if (subjectsArray.length === 0) {
+            this.errorMsg = 'Please enter at least one subject.';
             return;
         }
 
         const payload = { ...formVal, subjects: subjectsArray };
+        this.submitting = true;
+        this.errorMsg = '';
 
         if (this.isEditMode && this.leadId) {
-            // Update
             this.leadService.updateLead(this.leadId, payload).subscribe({
                 next: () => {
-                    alert('Lead updated successfully.');
+                    this.submitting = false;
                     this.router.navigate(['/parent/my-leads']);
                 },
                 error: (err) => {
-                    console.error('Update error:', err);
-                    alert('Failed to update lead.');
+                    this.submitting = false;
+                    this.errorMsg = err.error?.message || 'Failed to update. Please try again.';
                 }
             });
         } else {
-            // Create
             this.leadService.createLead(payload).subscribe({
                 next: () => {
-                    alert('Success! Tuition requirement posted.');
+                    this.submitting = false;
                     this.router.navigate(['/parent/my-leads']);
                 },
                 error: (err) => {
-                    console.error('Lead creation error:', err);
-                    const msg = err.error?.message || 'Failed to create lead. Please try again.';
-                    alert(msg);
+                    this.submitting = false;
+                    this.errorMsg = err.error?.message || 'Failed to post requirement. Please try again.';
                 }
             });
         }

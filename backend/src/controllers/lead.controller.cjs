@@ -1,161 +1,263 @@
+const mongoose = require("mongoose");
 const TuitionLead = require("../models/TutionLead.model.cjs");
 const LeadUnlock = require("../models/LeadUnlock.model.cjs");
 const KPIEvent = require("../models/KPIEvent.model.cjs");
+const User = require("../models/user.model.cjs");
+const Transaction = require("../models/Transaction.model.cjs");
 
+// Validate MongoDB ObjectId
+const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
+
+// Parent: create a new lead
 exports.createLead = async (req, res) => {
     try {
+        const { title, subjects, classLevel, mode, location, budgetRange, description } = req.body;
+
+        if (!title || !subjects || !classLevel || !mode) {
+            return res.status(400).json({ message: "title, subjects, classLevel and mode are required" });
+        }
+        if (!Array.isArray(subjects) || subjects.length === 0) {
+            return res.status(400).json({ message: "subjects must be a non-empty array" });
+        }
+
         const lead = await TuitionLead.create({
-            ...req.body,
-            parentId: req.user.id
+            parentId: req.user.id,
+            title: title.trim(),
+            subjects: subjects.map(s => s.trim()).filter(Boolean),
+            classLevel: classLevel.trim(),
+            mode,
+            location: location ? location.trim() : undefined,
+            budgetRange: budgetRange ? budgetRange.trim() : undefined,
+            description: description ? description.trim() : undefined
         });
 
         res.status(201).json(lead);
     } catch (err) {
+        if (err.name === "ValidationError") {
+            return res.status(400).json({ message: err.message });
+        }
         console.error("Create Lead Error:", err);
-        res.status(500).json({ message: "Failed to create lead", error: err.message });
+        res.status(500).json({ message: "Failed to create lead" });
     }
 };
 
+// Parent: list their own leads
 exports.getMyLeads = async (req, res) => {
     try {
-        const leads = await TuitionLead.find({ parentId: req.user.id });
-        res.json(leads);
-    } catch (err) {
-        res.status(500).json({ message: "Failed to fetch leads" });
-    }
-};
-
-// Tutor: list all OPEN leads
-exports.getLeadsForTutor = async (req, res) => {
-    try {
-        const leads = await TuitionLead.find({ status: "OPEN" })
+        const leads = await TuitionLead.find({ parentId: req.user.id })
             .sort({ createdAt: -1 });
 
-        const unlocked = await LeadUnlock.find({ tutorId: req.user.id })
-            .select("leadId");
-
-        const unlockedIds = unlocked.map(u => u.leadId.toString());
+        // Include interest count (how many tutors unlocked each lead)
+        const leadIds = leads.map(l => l._id);
+        const unlocks = await LeadUnlock.aggregate([
+            { $match: { leadId: { $in: leadIds } } },
+            { $group: { _id: "$leadId", count: { $sum: 1 } } }
+        ]);
+        const unlockMap = {};
+        unlocks.forEach(u => { unlockMap[u._id.toString()] = u.count; });
 
         const result = leads.map(l => ({
             ...l.toObject(),
-            isUnlocked: unlockedIds.includes(l._id.toString())
+            interestCount: unlockMap[l._id.toString()] || 0
         }));
-
-        // KPI Tracking
-        await KPIEvent.create({
-            userId: req.user.id,
-            eventType: "LEAD_VIEW",
-            metadata: { count: leads.length }
-        });
 
         res.json(result);
     } catch (err) {
+        console.error("GetMyLeads Error:", err);
         res.status(500).json({ message: "Failed to fetch leads" });
     }
 };
 
+// Tutor: list all OPEN leads (with unlock status + parent contact for unlocked)
+exports.getLeadsForTutor = async (req, res) => {
+    try {
+        const leads = await TuitionLead.find({ status: "OPEN" })
+            .populate("parentId", "name phone email location")
+            .sort({ createdAt: -1 });
+
+        const unlockedRecords = await LeadUnlock.find({ tutorId: req.user.id }).select("leadId");
+        const unlockedIds = new Set(unlockedRecords.map(u => u.leadId.toString()));
+
+        const result = leads.map(lead => {
+            const obj = lead.toObject();
+            const unlocked = unlockedIds.has(lead._id.toString());
+
+            // Only expose parent contact details if this tutor has unlocked the lead
+            const parentContact = unlocked && lead.parentId ? {
+                name: lead.parentId.name,
+                phone: lead.parentId.phone || "Not provided",
+                email: lead.parentId.email
+            } : null;
+
+            // Don't expose parentId object to locked leads
+            delete obj.parentId;
+
+            return {
+                ...obj,
+                isUnlocked: unlocked,
+                parentContact
+            };
+        });
+
+        // KPI tracking (non-blocking)
+        KPIEvent.create({
+            userId: req.user.id,
+            eventType: "LEAD_VIEW",
+            metadata: { count: leads.length }
+        }).catch(() => {});
+
+        res.json(result);
+    } catch (err) {
+        console.error("GetLeadsForTutor Error:", err);
+        res.status(500).json({ message: "Failed to fetch leads" });
+    }
+};
+
+// Tutor: unlock a lead (costs 1 point)
 exports.unlockLead = async (req, res) => {
     try {
         const tutorId = req.user.id;
         const leadId = req.params.id;
-        const Transaction = require("../models/Transaction.model.cjs");
-        const User = require("../models/user.model.cjs");
+
+        if (!isValidId(leadId)) {
+            return res.status(400).json({ message: "Invalid lead ID" });
+        }
+
+        const lead = await TuitionLead.findById(leadId)
+            .populate("parentId", "name phone email");
+
+        if (!lead) return res.status(404).json({ message: "Lead not found" });
+        if (lead.status === "CLOSED") {
+            return res.status(400).json({ message: "This lead is already closed" });
+        }
 
         const alreadyUnlocked = await LeadUnlock.findOne({ tutorId, leadId });
         if (alreadyUnlocked) {
-            return res.status(409).json({ message: "Lead already unlocked" });
+            // Return parent contact even if already unlocked
+            return res.status(200).json({
+                message: "Already unlocked",
+                parentContact: {
+                    name: lead.parentId?.name,
+                    phone: lead.parentId?.phone || "Not provided",
+                    email: lead.parentId?.email
+                },
+                remainingPoints: req.user.points
+            });
         }
 
-        const user = await User.findById(tutorId);
-        if (!user.points || user.points < 1) {
-            return res.status(403).json({ message: "Insufficient points. Please recharge." });
+        const tutor = await User.findById(tutorId);
+        if (!tutor || tutor.points < 1) {
+            return res.status(403).json({
+                message: "Insufficient points. Please buy a plan to continue.",
+                code: "INSUFFICIENT_POINTS"
+            });
         }
 
-        // Deduct Point
-        user.points -= 1;
-        await user.save();
+        // Deduct point
+        tutor.points -= 1;
+        await tutor.save();
 
-        // Record Unlock
-        await LeadUnlock.create({
-            tutorId,
-            leadId,
-            price: 1
-        });
+        // Record unlock
+        await LeadUnlock.create({ tutorId, leadId, price: 1 });
 
-        // Record Debit Transaction
+        // Record debit transaction
         await Transaction.create({
             userId: tutorId,
             amount: 0,
             points: 1,
             type: "DEBIT",
-            description: `Unlocked Lead (ID: ${leadId})`,
+            description: `Unlocked lead: ${lead.title}`,
             status: "SUCCESS"
         });
 
-        await KPIEvent.create({
+        // KPI tracking (non-blocking)
+        KPIEvent.create({
             userId: tutorId,
             eventType: "LEAD_UNLOCK",
             metadata: { leadId, price: 1 }
-        });
+        }).catch(() => {});
 
-        res.json({ message: "Lead unlocked successfully!", remainingPoints: user.points });
+        res.json({
+            message: "Lead unlocked! You can now contact the parent.",
+            remainingPoints: tutor.points,
+            parentContact: {
+                name: lead.parentId?.name,
+                phone: lead.parentId?.phone || "Not provided",
+                email: lead.parentId?.email
+            }
+        });
     } catch (err) {
         console.error("Unlock Error:", err);
-        res.status(500).json({ message: "Unlock failed" });
+        res.status(500).json({ message: "Unlock failed. Please try again." });
     }
 };
 
+// Admin: close a lead
 exports.closeLead = async (req, res) => {
     try {
-        await TuitionLead.findByIdAndUpdate(req.params.id, {
-            status: "CLOSED"
-        });
-        res.json({ message: "Lead closed" });
+        if (!isValidId(req.params.id)) {
+            return res.status(400).json({ message: "Invalid lead ID" });
+        }
+        const lead = await TuitionLead.findByIdAndUpdate(
+            req.params.id,
+            { status: "CLOSED" },
+            { new: true }
+        );
+        if (!lead) return res.status(404).json({ message: "Lead not found" });
+        res.json({ message: "Lead closed successfully", lead });
     } catch (err) {
         res.status(500).json({ message: "Failed to close lead" });
     }
 };
 
+// Parent: update their own lead
 exports.updateLead = async (req, res) => {
     try {
+        if (!isValidId(req.params.id)) {
+            return res.status(400).json({ message: "Invalid lead ID" });
+        }
+
         const lead = await TuitionLead.findOne({ _id: req.params.id, parentId: req.user.id });
         if (!lead) {
-            return res.status(404).json({ message: "Lead not found or unauthorized" });
+            return res.status(404).json({ message: "Lead not found or you are not authorized to edit it" });
+        }
+
+        const allowedUpdates = ["title", "subjects", "classLevel", "mode", "location", "budgetRange", "description", "status"];
+        const updates = {};
+        allowedUpdates.forEach(field => {
+            if (req.body[field] !== undefined) updates[field] = req.body[field];
+        });
+
+        if (updates.subjects && !Array.isArray(updates.subjects)) {
+            return res.status(400).json({ message: "subjects must be an array" });
         }
 
         const updatedLead = await TuitionLead.findByIdAndUpdate(
             req.params.id,
-            { ...req.body },
-            { new: true }
+            { $set: updates },
+            { new: true, runValidators: true }
         );
 
         res.json(updatedLead);
     } catch (err) {
+        if (err.name === "ValidationError") {
+            return res.status(400).json({ message: err.message });
+        }
         console.error("Update Lead Error:", err);
         res.status(500).json({ message: "Failed to update lead" });
     }
 };
 
+// Parent: get a specific lead (edit mode)
 exports.getLeadById = async (req, res) => {
     try {
-        console.log(`Fetching Lead: ${req.params.id} for User: ${req.user.id}`);
-
-        // Debug check: Does lead exist at all?
-        const leadCheck = await TuitionLead.findById(req.params.id);
-        if (!leadCheck) {
-            console.log("Lead does not exist in DB");
-            return res.status(404).json({ message: "Lead not found in DB" });
-        } else {
-            console.log(`Lead exists. Owner: ${leadCheck.parentId}, Requestor: ${req.user.id}`);
+        if (!isValidId(req.params.id)) {
+            return res.status(400).json({ message: "Invalid lead ID" });
         }
 
         const lead = await TuitionLead.findOne({ _id: req.params.id, parentId: req.user.id });
         if (!lead) {
-            console.log("Lead found but Parent ID mismatch");
-            // For now, let's return it ANYWAY if it belongs to someone else, JUST FOR DEBUGGING, 
-            // OR return the mismatch error more clearly.
-            // Actually, let's Just return 404 but we know why now from server logs.
-            return res.status(404).json({ message: "Lead not found (Parent mismatch)" });
+            return res.status(404).json({ message: "Lead not found or you are not authorized to view it" });
         }
         res.json(lead);
     } catch (err) {

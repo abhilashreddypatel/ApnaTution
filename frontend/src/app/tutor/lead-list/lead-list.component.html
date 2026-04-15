@@ -1,47 +1,50 @@
 <div class="page-wrapper">
+
+    <!-- Toast Notification -->
+    @if (toast) {
+        <div class="toast-notification" [class]="'toast-' + toast.type">
+            <span>{{ toast.message }}</span>
+        </div>
+    }
+
     <!-- Sidebar Filters -->
     <aside class="sidebar">
         <div class="filter-card">
             <div class="filter-header">
-                <h3>Refine Search</h3>
+                <h3>Filter Leads</h3>
+                <button class="clear-btn" (click)="clearFilters()">Clear All</button>
             </div>
 
             <div class="filter-group">
-                <label>Locality / Pincode</label>
-                <input type="text" placeholder="Locality or Pincode" (input)="onFilterChange('location', $event)">
+                <label>Location / City</label>
+                <input type="text" placeholder="e.g. Mumbai, Delhi" [value]="filters.location"
+                    (input)="onFilterChange('location', $event)">
             </div>
 
             <div class="filter-group">
-                <label>Course / Class</label>
-                <input type="text" placeholder="Enter course or class" (input)="onFilterChange('course', $event)">
+                <label>Class / Course</label>
+                <input type="text" placeholder="e.g. Class 10, JEE" [value]="filters.course"
+                    (input)="onFilterChange('course', $event)">
             </div>
 
             <div class="filter-group">
                 <label>Subject</label>
-                <input type="text" placeholder="Enter subject" (input)="onFilterChange('subject', $event)">
+                <input type="text" placeholder="e.g. Mathematics, Physics" [value]="filters.subject"
+                    (input)="onFilterChange('subject', $event)">
             </div>
 
             <div class="filter-group">
-                <label>Hourly Price</label>
-                <div class="radio-group">
-                    <!-- Simplified value passing for prototyping -->
-                    <label class="radio-item">
-                        <input type="radio" name="price" value="" checked (change)="onFilterChange('price', $event)">
-                        <span>Any</span>
-                    </label>
-                    <label class="radio-item">
-                        <input type="radio" name="price" value="200" (change)="onFilterChange('price', $event)">
-                        <span>Upto ₹ 200</span>
-                    </label>
-                    <label class="radio-item">
-                        <input type="radio" name="price" value="500" (change)="onFilterChange('price', $event)">
-                        <span>₹ 201 - ₹ 500</span>
-                    </label>
-                    <label class="radio-item">
-                        <input type="radio" name="price" value="1000" (change)="onFilterChange('price', $event)">
-                        <span>Above ₹ 500</span>
-                    </label>
-                </div>
+                <label>Teaching Mode</label>
+                <select [value]="filters.mode" (change)="onFilterChange('mode', $event)">
+                    <option value="">All Modes</option>
+                    <option value="online">Online</option>
+                    <option value="home">Home Tuition</option>
+                    <option value="both">Both</option>
+                </select>
+            </div>
+
+            <div class="results-count">
+                <span>{{ filteredLeads.length }} lead{{ filteredLeads.length !== 1 ? 's' : '' }} found</span>
             </div>
         </div>
     </aside>
@@ -49,84 +52,147 @@
     <!-- Main Content -->
     <main class="main-content">
         <div class="header-section">
-            <h2>Home Tuitions / Part time tutoring jobs</h2>
-            <div class="sort-controls">
-                <span>Sort By</span>
-                <select>
-                    <option>Default Sort</option>
-                    <option>Newest First</option>
-                    <option>Price: High to Low</option>
-                </select>
+            <div>
+                <h2>Tuition Opportunities</h2>
+                <p class="header-sub">Unlock a lead to reveal parent contact details (1 Point per lead)</p>
             </div>
+            <a routerLink="/tutor/buy-points" class="btn-buy-points">
+                <i class="fa-solid fa-wallet"></i> Buy Points
+            </a>
         </div>
 
-        <div class="leads-grid">
-            <div *ngFor="let lead of filteredLeads" class="lead-card" [class.unlocked]="lead.isUnlocked">
-                <div class="card-header-date">
-                    📅 Posted On: {{ lead.createdAt ? (lead.createdAt | date:'dd-MMM-yy') : 'Recently' }}
-                </div>
+        <!-- Loading State -->
+        @if (loadingLeads) {
+            <div class="loading-state">
+                <i class="fa-solid fa-circle-notch fa-spin"></i>
+                <p>Loading opportunities...</p>
+            </div>
+        }
 
-                <div class="card-body">
-                    <div class="tutor-info">
-                        <div class="avatar-placeholder">
-                            <span class="initials">{{ lead.title ? lead.title.substring(0,2).toUpperCase() : 'TU'
-                                }}</span>
-                        </div>
-                        <div class="details">
-                            <h3 class="lead-title">{{ lead.title }}</h3>
-                            <div class="location-row" *ngIf="lead.isUnlocked; else lockedLocation">
-                                <span class="icon">📍</span> {{ lead.location }}
-                            </div>
-                            <ng-template #lockedLocation>
-                                <div class="location-row locked-text">
-                                    <span class="icon">📍</span> Location Locked
-                                </div>
-                            </ng-template>
-                        </div>
+        <!-- Empty State -->
+        @if (!loadingLeads && filteredLeads.length === 0) {
+            <div class="empty-state">
+                <i class="fa-solid fa-search"></i>
+                <h3>No leads found</h3>
+                <p>Try adjusting your filters or check back later for new opportunities.</p>
+                <button class="btn-clear" (click)="clearFilters()">Clear Filters</button>
+            </div>
+        }
+
+        <!-- Leads Grid -->
+        <div class="leads-grid">
+            @for (lead of filteredLeads; track lead._id) {
+                <div class="lead-card" [class.lead-unlocked]="lead.isUnlocked">
+
+                    <!-- Card Status Bar -->
+                    <div class="card-top-bar">
+                        <span class="mode-badge" [class]="'mode-' + lead.mode?.toLowerCase()">
+                            {{ lead.mode }}
+                        </span>
+                        <span class="posted-date">
+                            {{ lead.createdAt ? (lead.createdAt | date:'dd MMM yyyy') : 'Recent' }}
+                        </span>
                     </div>
 
+                    <!-- Lead Title -->
+                    <h3 class="lead-title">{{ lead.title }}</h3>
+
+                    <!-- Specs Grid -->
                     <div class="specs-grid">
                         <div class="spec-item">
-                            <span class="label">Preferred:</span>
-                            <span class="value">
-                                <span class="gender-icon">👤 Any</span>
-                                <span class="time-icon">🕒 Evening</span>
-                            </span>
+                            <span class="spec-label">Class</span>
+                            <span class="spec-value">{{ lead.classLevel }}</span>
                         </div>
                         <div class="spec-item">
-                            <span class="label">Class:</span>
-                            <span class="value">{{ lead.classLevel }}</span>
+                            <span class="spec-label">Subjects</span>
+                            <span class="spec-value subjects-val">{{ lead.subjects?.join(', ') }}</span>
                         </div>
                         <div class="spec-item">
-                            <span class="label">Subjects:</span>
-                            <span class="value highlight-text">{{ lead.subjects.join(', ') }}</span>
+                            <span class="spec-label">Location</span>
+                            @if (lead.isUnlocked) {
+                                <span class="spec-value location-revealed">
+                                    <i class="fa-solid fa-location-dot"></i> {{ lead.location || 'Not specified' }}
+                                </span>
+                            } @else {
+                                <span class="spec-value locked-val">
+                                    <i class="fa-solid fa-lock"></i> Unlock to view
+                                </span>
+                            }
                         </div>
                         <div class="spec-item">
-                            <span class="label">Budget:</span>
-                            <span class="value" *ngIf="lead.isUnlocked">{{ lead.budgetRange }}</span>
-                            <span class="value locked-text" *ngIf="!lead.isUnlocked">Locked</span>
+                            <span class="spec-label">Budget</span>
+                            @if (lead.isUnlocked) {
+                                <span class="spec-value budget-revealed">{{ lead.budgetRange || 'Negotiable' }}</span>
+                            } @else {
+                                <span class="spec-value locked-val">
+                                    <i class="fa-solid fa-lock"></i> Locked
+                                </span>
+                            }
                         </div>
                     </div>
 
-                    <div class="desc-box">
-                        <p *ngIf="lead.isUnlocked">{{ lead.description }}</p>
-                        <p *ngIf="!lead.isUnlocked" class="blur-text">
-                            Looking for a tutor for {{ lead.classLevel }} covering {{ lead.subjects.join(', ') }}.
-                            Unlock to view full details...
-                        </p>
+                    <!-- Description -->
+                    <div class="desc-section">
+                        @if (lead.isUnlocked && lead.description) {
+                            <p class="desc-text">{{ lead.description }}</p>
+                        } @else if (!lead.isUnlocked) {
+                            <p class="desc-blur">
+                                Looking for a {{ lead.classLevel }} tutor covering {{ lead.subjects?.join(', ') }}.
+                                Unlock to view full details including contact information...
+                            </p>
+                        }
                     </div>
 
-                    <div class="action-buttons">
-                        <button class="btn-secondary">View Details</button>
-                        <button *ngIf="!lead.isUnlocked" (click)="unlockLead(lead)" class="btn-primary">
-                            Unlock (₹99)
-                        </button>
-                        <button *ngIf="lead.isUnlocked" class="btn-success">
-                            Apply Now
-                        </button>
+                    <!-- Parent Contact (shown after unlock) -->
+                    @if (lead.isUnlocked && lead.parentContact) {
+                        <div class="contact-card">
+                            <div class="contact-header">
+                                <i class="fa-solid fa-circle-check"></i>
+                                <span>Parent Contact Revealed</span>
+                            </div>
+                            <div class="contact-details">
+                                <div class="contact-row">
+                                    <i class="fa-solid fa-user"></i>
+                                    <span>{{ lead.parentContact.name }}</span>
+                                </div>
+                                @if (lead.parentContact.phone && lead.parentContact.phone !== 'Not provided') {
+                                    <div class="contact-row">
+                                        <i class="fa-solid fa-phone"></i>
+                                        <a href="tel:{{ lead.parentContact.phone }}" class="contact-link">
+                                            {{ lead.parentContact.phone }}
+                                        </a>
+                                    </div>
+                                }
+                                <div class="contact-row">
+                                    <i class="fa-solid fa-envelope"></i>
+                                    <a href="mailto:{{ lead.parentContact.email }}" class="contact-link">
+                                        {{ lead.parentContact.email }}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+
+                    <!-- Actions -->
+                    <div class="card-actions">
+                        @if (!lead.isUnlocked) {
+                            <button class="btn-unlock"
+                                [disabled]="unlockingId === lead._id"
+                                (click)="unlockLead(lead)">
+                                @if (unlockingId === lead._id) {
+                                    <i class="fa-solid fa-circle-notch fa-spin"></i> Unlocking...
+                                } @else {
+                                    <i class="fa-solid fa-lock-open"></i> Unlock for 1 Point
+                                }
+                            </button>
+                        } @else {
+                            <div class="unlocked-badge">
+                                <i class="fa-solid fa-circle-check"></i> Unlocked
+                            </div>
+                        }
                     </div>
                 </div>
-            </div>
+            }
         </div>
     </main>
 </div>

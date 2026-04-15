@@ -64,7 +64,8 @@
               "buildTarget": "apna-tution-frontend:build:production"
             },
             "development": {
-              "buildTarget": "apna-tution-frontend:build:development"
+              "buildTarget": "apna-tution-frontend:build:development",
+              "proxyConfig": "proxy.conf.json"
             }
           },
           "defaultConfiguration": "development"

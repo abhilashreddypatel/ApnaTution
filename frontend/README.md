@@ -2,6 +2,8 @@
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.1.2.
 
+Demo credentials: rajesh.tutor@demo.com / Demo@1234 (tutor, 10 points), parent@demo.com / Demo@1234 (parent with phone 9123456789).
+
 ## Development server
 
 To start a local development server, run:

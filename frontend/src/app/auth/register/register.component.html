@@ -1,42 +1,98 @@
-<div class="register-container">
-    <h2>Register</h2>
-    <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
-        <div class="form-group">
-            <label for="role">I am a:</label>
-            <select id="role" formControlName="role" class="form-control">
-                <option value="PARENT">Parent</option>
-                <option value="TUTOR">Tutor</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <label for="name">Name</label>
-            <input type="text" id="name" formControlName="name" class="form-control" required>
-        </div>
-        <div class="form-group">
-            <label for="email">Email</label>
-            <input type="email" id="email" formControlName="email" class="form-control" required>
-        </div>
-        <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" id="password" formControlName="password" class="form-control" required>
+<div class="auth-page">
+    <div class="auth-card">
+        <div class="auth-header">
+            <a routerLink="/" class="auth-brand">ApnaTution</a>
+            <h2>Create Account</h2>
+            <p>Join thousands of parents and tutors</p>
         </div>
 
-        <!-- Tutor specific fields -->
-        <ng-container *ngIf="registerForm.get('role')?.value === 'TUTOR'">
-            <div class="form-group">
-                <label for="subjects">Subjects (comma separated)</label>
-                <input type="text" id="subjects" formControlName="subjects" class="form-control"
-                    placeholder="Math, Physics">
-            </div>
-            <div class="form-group">
-                <label for="location">Location</label>
-                <input type="text" id="location" formControlName="location" class="form-control"
-                    placeholder="Mumbai, Delhi">
-            </div>
-        </ng-container>
+        <!-- Role Toggle -->
+        <div class="role-toggle">
+            <button type="button"
+                [class.role-active]="selectedRole === 'PARENT'"
+                (click)="registerForm.patchValue({role: 'PARENT'})">
+                <i class="fa-solid fa-users"></i> I'm a Parent
+            </button>
+            <button type="button"
+                [class.role-active]="selectedRole === 'TUTOR'"
+                (click)="registerForm.patchValue({role: 'TUTOR'})">
+                <i class="fa-solid fa-chalkboard-teacher"></i> I'm a Tutor
+            </button>
+        </div>
 
-        <button type="submit" [disabled]="registerForm.invalid">Register</button>
-        <p *ngIf="error" class="error">{{ error }}</p>
-    </form>
-    <p>Already have an account? <a routerLink="/login">Login</a></p>
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+            <div class="form-group" [class.has-error]="registerForm.get('name')?.invalid && registerForm.get('name')?.touched">
+                <label>Full Name *</label>
+                <input type="text" formControlName="name" placeholder="e.g. Rahul Sharma">
+                @if (registerForm.get('name')?.hasError('required') && registerForm.get('name')?.touched) {
+                    <span class="field-error">Name is required</span>
+                }
+            </div>
+
+            <div class="form-group" [class.has-error]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
+                <label>Email Address *</label>
+                <input type="email" formControlName="email" placeholder="you@example.com">
+                @if (registerForm.get('email')?.hasError('required') && registerForm.get('email')?.touched) {
+                    <span class="field-error">Email is required</span>
+                }
+                @if (registerForm.get('email')?.hasError('email') && registerForm.get('email')?.touched) {
+                    <span class="field-error">Enter a valid email address</span>
+                }
+            </div>
+
+            <div class="form-group" [class.has-error]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
+                <label>Password *</label>
+                <div class="input-with-icon">
+                    <input [type]="showPassword ? 'text' : 'password'" formControlName="password"
+                        placeholder="Minimum 6 characters">
+                    <button type="button" class="toggle-pwd" (click)="togglePassword()">
+                        <i [class]="showPassword ? 'fa-solid fa-eye-slash' : 'fa-solid fa-eye'"></i>
+                    </button>
+                </div>
+                @if (registerForm.get('password')?.hasError('minlength') && registerForm.get('password')?.touched) {
+                    <span class="field-error">Password must be at least 6 characters</span>
+                }
+            </div>
+
+            <div class="form-group">
+                <label>Phone Number</label>
+                <input type="tel" formControlName="phone" placeholder="+91 9876543210">
+                <span class="field-hint">
+                    @if (selectedRole === 'PARENT') { Shared with tutors who contact you }
+                    @if (selectedRole === 'TUTOR') { Helps parents reach you }
+                </span>
+            </div>
+
+            <!-- Tutor-specific fields -->
+            @if (selectedRole === 'TUTOR') {
+                <div class="form-group">
+                    <label>Subjects You Teach</label>
+                    <input type="text" formControlName="subjects" placeholder="e.g. Mathematics, Physics, Chemistry">
+                    <span class="field-hint">Separate multiple subjects with commas</span>
+                </div>
+                <div class="form-group">
+                    <label>Your City / Location</label>
+                    <input type="text" formControlName="location" placeholder="e.g. Mumbai, Delhi">
+                </div>
+            }
+
+            @if (error) {
+                <div class="error-alert">
+                    <i class="fa-solid fa-circle-exclamation"></i> {{ error }}
+                </div>
+            }
+
+            <button type="submit" class="btn-submit" [disabled]="loading">
+                @if (loading) {
+                    <i class="fa-solid fa-circle-notch fa-spin"></i> Creating Account...
+                } @else {
+                    <i class="fa-solid fa-user-plus"></i> Create Account
+                }
+            </button>
+        </form>
+
+        <p class="auth-footer">
+            Already have an account? <a routerLink="/login">Sign in</a>
+        </p>
+    </div>
 </div>

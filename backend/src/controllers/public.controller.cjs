@@ -30,3 +30,17 @@ exports.getPublicStats = async (req, res) => {
         res.status(500).json({ message: "Failed to fetch public stats" });
     }
 };
+
+exports.getPublicLeads = async (req, res) => {
+    try {
+        const TuitionLead = require("../models/TutionLead.model.cjs");
+        const leads = await TuitionLead.find({ status: 'OPEN' })
+            .select("title subjects classLevel mode budgetRange location createdAt")
+            .sort({ createdAt: -1 })
+            .limit(10);
+        res.json(leads);
+    } catch (err) {
+        console.error("Get Public Leads Error:", err);
+        res.status(500).json({ message: "Failed to fetch public leads" });
+    }
+};

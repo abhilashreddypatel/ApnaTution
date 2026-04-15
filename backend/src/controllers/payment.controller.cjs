@@ -1,50 +1,171 @@
+const bcrypt = require("bcryptjs");
 const User = require("../models/user.model.cjs");
 const SubscriptionPlan = require("../models/SubscriptionPlan.model.cjs");
 const Transaction = require("../models/Transaction.model.cjs");
 const Coupon = require("../models/Coupon.model.cjs");
 
-// Lazy Seed Plans (for demo purposes)
+// Run once at startup to seed demo data
 exports.seedPlans = async () => {
     try {
-        const plans = await SubscriptionPlan.find();
-        if (plans.length === 0) {
+        // Seed Plans
+        const planCount = await SubscriptionPlan.countDocuments();
+        if (planCount === 0) {
             await SubscriptionPlan.insertMany([
-                { name: "Starter Pack", price: 500, points: 10, discountDescription: "Standard Rate (50rs/lead)" },
-                { name: "Growth Pack", price: 2000, points: 50, discountDescription: "Save 20% (40rs/lead)" },
-                { name: "Pro Pack", price: 5000, points: 150, discountDescription: "Save 33% (33rs/lead)" }
+                { name: "Starter Pack",  price: 500,  points: 10,  discountDescription: "Standard Rate (₹50/lead)" },
+                { name: "Growth Pack",   price: 2000, points: 50,  discountDescription: "Save 20% (₹40/lead)" },
+                { name: "Pro Pack",      price: 5000, points: 150, discountDescription: "Save 33% (₹33/lead)" }
             ]);
-            console.log("Plans seeded");
+            console.log("Seeded: subscription plans");
         }
-        const coupons = await Coupon.find();
-        if (coupons.length === 0) {
-            await Coupon.create({ code: "WELCOME10", discountPercentage: 10, usageLimit: 10000 });
-            console.log("Coupons seeded");
+
+        // Seed Coupons
+        const couponCount = await Coupon.countDocuments();
+        if (couponCount === 0) {
+            await Coupon.create({
+                code: "WELCOME10",
+                discountPercentage: 10,
+                usageLimit: 10000,
+                expiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // 1 year
+            });
+            console.log("Seeded: coupons");
+        }
+
+        // Seed Demo Tutors (with hashed passwords)
+        const tutorCount = await User.countDocuments({ role: "TUTOR" });
+        if (tutorCount === 0) {
+            const hashedPwd = await bcrypt.hash("Demo@1234", 10);
+            await User.insertMany([
+                {
+                    name: "Rajesh Kumar",
+                    email: "rajesh.tutor@demo.com",
+                    password: hashedPwd,
+                    role: "TUTOR",
+                    phone: "9876543210",
+                    subjects: ["Mathematics", "Physics"],
+                    location: "Mumbai",
+                    experience: "5 Years",
+                    mode: "BOTH",
+                    hourlyRate: "₹500/hr",
+                    tagline: "Expert Math & Physics Tutor with 5+ years",
+                    rating: 4.8,
+                    reviewsCount: 32,
+                    points: 10
+                },
+                {
+                    name: "Priya Sharma",
+                    email: "priya.tutor@demo.com",
+                    password: hashedPwd,
+                    role: "TUTOR",
+                    phone: "9876543211",
+                    subjects: ["English", "Hindi", "Social Studies"],
+                    location: "Delhi",
+                    experience: "3 Years",
+                    mode: "HOME",
+                    hourlyRate: "₹400/hr",
+                    tagline: "Passionate Language & Humanities Educator",
+                    rating: 4.6,
+                    reviewsCount: 18,
+                    points: 5
+                },
+                {
+                    name: "Amit Verma",
+                    email: "amit.tutor@demo.com",
+                    password: hashedPwd,
+                    role: "TUTOR",
+                    phone: "9876543212",
+                    subjects: ["Chemistry", "Biology", "Science"],
+                    location: "Hyderabad",
+                    experience: "7 Years",
+                    mode: "ONLINE",
+                    hourlyRate: "₹600/hr",
+                    tagline: "IIT Alumni | Science specialist for CBSE & ICSE",
+                    rating: 4.9,
+                    reviewsCount: 56,
+                    points: 20
+                }
+            ]);
+            console.log("Seeded: demo tutors");
+        }
+
+        // Seed Demo Parent + Leads
+        const TuitionLead = require("../models/TutionLead.model.cjs");
+        const leadCount = await TuitionLead.countDocuments();
+        if (leadCount === 0) {
+            let parent = await User.findOne({ role: "PARENT" });
+            if (!parent) {
+                const hashedPwd = await bcrypt.hash("Demo@1234", 10);
+                parent = await User.create({
+                    name: "Suresh Mehta",
+                    email: "parent@demo.com",
+                    password: hashedPwd,
+                    role: "PARENT",
+                    phone: "9123456789",
+                    location: "Mumbai"
+                });
+            }
+            await TuitionLead.insertMany([
+                {
+                    parentId: parent._id,
+                    title: "Maths Tutor Needed for Class 10 CBSE",
+                    subjects: ["Mathematics"],
+                    classLevel: "Class 10",
+                    mode: "HOME",
+                    location: "Andheri West, Mumbai",
+                    budgetRange: "₹5000-8000/month",
+                    description: "Looking for an experienced maths tutor for my son in Class 10 CBSE. Need help with Algebra, Geometry and Trigonometry. Timing: 5 PM - 7 PM on weekdays."
+                },
+                {
+                    parentId: parent._id,
+                    title: "English Grammar for Beginner (Class 5)",
+                    subjects: ["English"],
+                    classLevel: "Class 5",
+                    mode: "ONLINE",
+                    location: "Delhi",
+                    budgetRange: "₹3000/month",
+                    description: "My daughter needs help with English grammar and writing skills. She is in Class 5. Prefer female tutor. Sessions twice a week."
+                },
+                {
+                    parentId: parent._id,
+                    title: "Physics & Chemistry for Class 12 IIT JEE",
+                    subjects: ["Physics", "Chemistry"],
+                    classLevel: "Class 12",
+                    mode: "BOTH",
+                    location: "Hyderabad",
+                    budgetRange: "₹10000-15000/month",
+                    description: "Need a dedicated tutor for IIT JEE preparation. My son is in Class 12. Looking for someone who can teach both Physics and Chemistry systematically."
+                }
+            ]);
+            console.log("Seeded: demo leads");
         }
     } catch (err) {
-        console.error("Seeding failed", err);
+        console.error("Seeding error:", err.message);
+        // Don't throw - seeding failures shouldn't crash the server
     }
 };
 
 
 exports.getPlans = async (req, res) => {
     try {
-        const plans = await SubscriptionPlan.find({ isActive: true });
+        const plans = await SubscriptionPlan.find({ isActive: true }).sort({ price: 1 });
         res.status(200).json(plans);
-    } catch (error) {
-        res.status(500).json({ message: "Error fetching plans", error: error.message });
+    } catch (err) {
+        res.status(500).json({ message: "Failed to fetch plans", error: err.message });
     }
 };
 
 exports.validateCoupon = async (req, res) => {
     try {
         const { code } = req.body;
-        const coupon = await Coupon.findOne({ code: code.toUpperCase(), isActive: true });
+        if (!code) return res.status(400).json({ message: "Coupon code required" });
 
-        if (!coupon) {
-            return res.status(404).json({ message: "Invalid coupon code" });
-        }
+        const coupon = await Coupon.findOne({
+            code: code.trim().toUpperCase(),
+            isActive: true
+        });
+
+        if (!coupon) return res.status(404).json({ message: "Invalid coupon code" });
         if (coupon.expiryDate && coupon.expiryDate < new Date()) {
-            return res.status(400).json({ message: "Coupon expired" });
+            return res.status(400).json({ message: "Coupon has expired" });
         }
         if (coupon.usedCount >= coupon.usageLimit) {
             return res.status(400).json({ message: "Coupon usage limit reached" });
@@ -55,84 +176,102 @@ exports.validateCoupon = async (req, res) => {
             discountPercentage: coupon.discountPercentage,
             code: coupon.code
         });
-    } catch (error) {
-        res.status(500).json({ message: "Error validating coupon", error: error.message });
+    } catch (err) {
+        res.status(500).json({ message: "Coupon validation failed", error: err.message });
     }
 };
 
-// Mock Order Creation - In real life, integrate Razorpay/Stripe here
 exports.createOrder = async (req, res) => {
     try {
         const { planId, couponCode } = req.body;
         const userId = req.user.id;
 
+        if (!planId) return res.status(400).json({ message: "Plan ID is required" });
+
         const plan = await SubscriptionPlan.findById(planId);
-        if (!plan) return res.status(404).json({ message: "Plan not found" });
+        if (!plan || !plan.isActive) {
+            return res.status(404).json({ message: "Plan not found or inactive" });
+        }
 
         let finalAmount = plan.price;
-        let discount = 0;
+        let appliedCoupon = null;
 
         if (couponCode) {
-            const coupon = await Coupon.findOne({ code: couponCode.toUpperCase(), isActive: true });
-            if (coupon) {
-                // Simplified validation check again just in case
-                discount = (plan.price * coupon.discountPercentage) / 100;
+            const coupon = await Coupon.findOne({
+                code: couponCode.trim().toUpperCase(),
+                isActive: true
+            });
+            if (coupon && coupon.usedCount < coupon.usageLimit &&
+                (!coupon.expiryDate || coupon.expiryDate > new Date())) {
+                const discount = Math.round((plan.price * coupon.discountPercentage) / 100);
                 finalAmount = plan.price - discount;
+                appliedCoupon = coupon.code;
             }
         }
 
-        // Create a PENDING transaction
         const transaction = await Transaction.create({
             userId,
             amount: finalAmount,
             points: plan.points,
             type: "CREDIT",
-            description: `Purchase of ${plan.name}`,
+            description: `Purchase: ${plan.name}`,
             planId: plan._id,
-            couponCode: couponCode,
+            couponCode: appliedCoupon,
             status: "PENDING",
-            paymentId: `MOCK_PAY_${Date.now()}` // Simulation
+            paymentId: `ORDER_${Date.now()}`
         });
 
         res.status(200).json({
-            message: "Order created",
             transactionId: transaction._id,
             amount: finalAmount,
             points: plan.points,
-            paymentId: transaction.paymentId
+            planName: plan.name,
+            paymentId: transaction.paymentId,
+            currency: "INR"
         });
-
-    } catch (error) {
-        res.status(500).json({ message: "Error creating order", error: error.message });
+    } catch (err) {
+        res.status(500).json({ message: "Order creation failed", error: err.message });
     }
 };
 
-// Mock Payment Success
 exports.verifyPayment = async (req, res) => {
     try {
-        const { transactionId } = req.body; // In real flow, verify signature
+        const { transactionId } = req.body;
+        if (!transactionId) return res.status(400).json({ message: "Transaction ID required" });
 
         const transaction = await Transaction.findById(transactionId);
         if (!transaction) return res.status(404).json({ message: "Transaction not found" });
-        if (transaction.status === "SUCCESS") return res.status(200).json({ message: "Already processed" });
+        if (transaction.userId.toString() !== req.user.id) {
+            return res.status(403).json({ message: "Unauthorized transaction" });
+        }
+        if (transaction.status === "SUCCESS") {
+            return res.status(200).json({ message: "Already processed" });
+        }
 
-        // Update Transaction
+        // Mark transaction successful
         transaction.status = "SUCCESS";
         await transaction.save();
 
-        // Credit Points to User
-        const user = await User.findById(transaction.userId);
-        user.points = (user.points || 0) + transaction.points;
-        await user.save();
+        // Credit points to user
+        const user = await User.findByIdAndUpdate(
+            transaction.userId,
+            { $inc: { points: transaction.points } },
+            { new: true }
+        ).select("points name");
 
-        // Increment Coupon Usage if applicable
+        // Increment coupon usage
         if (transaction.couponCode) {
-            await Coupon.updateOne({ code: transaction.couponCode }, { $inc: { usedCount: 1 } });
+            await Coupon.updateOne(
+                { code: transaction.couponCode },
+                { $inc: { usedCount: 1 } }
+            );
         }
 
-        res.status(200).json({ message: "Payment successful. Points added!", points: user.points });
-
-    } catch (error) {
-        res.status(500).json({ message: "Verify payment failed", error: error.message });
+        res.status(200).json({
+            message: `Payment successful! ${transaction.points} points added.`,
+            points: user.points
+        });
+    } catch (err) {
+        res.status(500).json({ message: "Payment verification failed", error: err.message });
     }
 };

@@ -2,65 +2,108 @@ const User = require("../models/user.model.cjs");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const crypto = require("crypto");
+const sendEmail = require("../utils/sendEmail.cjs");
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 exports.register = async (req, res) => {
     try {
-        const { role, name, email, password } = req.body;
+        const { role, name, email, password, phone, subjects, location } = req.body;
 
         if (!role || !name || !email || !password) {
-            return res.status(400).json({ message: "Missing fields" });
+            return res.status(400).json({ message: "role, name, email and password are required" });
+        }
+        if (!["PARENT", "TUTOR"].includes(role)) {
+            return res.status(400).json({ message: "Role must be PARENT or TUTOR" });
+        }
+        if (!EMAIL_RE.test(email)) {
+            return res.status(400).json({ message: "Invalid email address" });
+        }
+        if (password.length < 6) {
+            return res.status(400).json({ message: "Password must be at least 6 characters" });
+        }
+        if (name.trim().length < 2) {
+            return res.status(400).json({ message: "Name must be at least 2 characters" });
         }
 
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return res.status(409).json({ message: "User already exists" });
+        const existing = await User.findOne({ email: email.toLowerCase().trim() });
+        if (existing) {
+            return res.status(409).json({ message: "An account with this email already exists" });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
         const userData = {
-            ...req.body,
-            password: hashedPassword
+            role,
+            name: name.trim(),
+            email: email.toLowerCase().trim(),
+            password: hashedPassword,
         };
 
-        const user = await User.create(userData);
+        if (phone) userData.phone = phone.trim();
+        if (location) userData.location = location.trim();
+        if (role === "TUTOR" && subjects) {
+            userData.subjects = Array.isArray(subjects)
+                ? subjects.map(s => s.trim()).filter(Boolean)
+                : subjects.split(",").map(s => s.trim()).filter(Boolean);
+        }
 
-        res.status(201).json({ message: "User registered" });
+        await User.create(userData);
+        res.status(201).json({ message: "Registration successful. Please login." });
     } catch (err) {
+        if (err.code === 11000) {
+            return res.status(409).json({ message: "Email already registered" });
+        }
+        if (err.name === "ValidationError") {
+            return res.status(400).json({ message: err.message });
+        }
         console.error("Registration Error:", err);
-        res.status(500).json({ message: "Registration failed", error: err.message });
+        res.status(500).json({ message: "Registration failed. Please try again." });
     }
 };
 
 exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
+        if (!email || !password) {
+            return res.status(400).json({ message: "Email and password are required" });
+        }
 
-        const user = await User.findOne({ email });
+        const user = await User.findOne({ email: email.toLowerCase().trim() });
         if (!user) {
-            return res.status(401).json({ message: "Invalid credentials" });
+            return res.status(401).json({ message: "Invalid email or password" });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
-            return res.status(401).json({ message: "Invalid credentials" });
+            return res.status(401).json({ message: "Invalid email or password" });
         }
 
         const token = jwt.sign(
-            { id: user._id, role: user.role },
+            { id: user._id, role: user.role, name: user.name },
             process.env.JWT_SECRET,
             { expiresIn: "7d" }
         );
 
-        res.json({ token });
+        res.json({
+            token,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role,
+                points: user.points
+            }
+        });
     } catch (err) {
-        res.status(500).json({ message: "Login failed" });
+        console.error("Login Error:", err);
+        res.status(500).json({ message: "Login failed. Please try again." });
     }
 };
 
 exports.getProfile = async (req, res) => {
     try {
-        const user = await User.findById(req.user.id).select("-password");
+        const user = await User.findById(req.user.id).select("-password -resetPasswordToken -resetPasswordExpire");
         if (!user) return res.status(404).json({ message: "User not found" });
         res.json(user);
     } catch (err) {
@@ -70,92 +113,92 @@ exports.getProfile = async (req, res) => {
 
 exports.updateProfile = async (req, res) => {
     try {
-        const { role, password, ...updateData } = req.body; // Don't allow changing role through this endpoint
+        // Prevent changing sensitive fields via this endpoint
+        const { role, email, password, resetPasswordToken, resetPasswordExpire, ...updateData } = req.body;
 
-        // If password is being updated, hash it
-        if (password) {
-            updateData.password = await bcrypt.hash(password, 10);
+        // Clean subjects if provided
+        if (updateData.subjects) {
+            updateData.subjects = Array.isArray(updateData.subjects)
+                ? updateData.subjects.map(s => s.trim()).filter(Boolean)
+                : updateData.subjects.split(",").map(s => s.trim()).filter(Boolean);
         }
 
         const user = await User.findByIdAndUpdate(
             req.user.id,
             { $set: updateData },
             { new: true, runValidators: true }
-        ).select("-password");
+        ).select("-password -resetPasswordToken -resetPasswordExpire");
 
+        if (!user) return res.status(404).json({ message: "User not found" });
         res.json(user);
     } catch (err) {
+        if (err.name === "ValidationError") {
+            return res.status(400).json({ message: err.message });
+        }
         console.error("Profile Update Error:", err);
-        res.status(500).json({ message: "Update failed" });
+        res.status(500).json({ message: "Profile update failed" });
     }
 };
-
-const sendEmail = require("../utils/sendEmail.cjs");
 
 exports.forgotPassword = async (req, res) => {
     try {
-        const user = await User.findOne({ email: req.body.email });
+        const { email } = req.body;
+        if (!email) return res.status(400).json({ message: "Email is required" });
+
+        const user = await User.findOne({ email: email.toLowerCase().trim() });
+        // Always return success to prevent email enumeration attacks
         if (!user) {
-            return res.status(404).json({ message: "User not found" });
+            return res.status(200).json({ message: "If this email is registered, a reset link has been sent." });
         }
 
-        // Generate token
         const resetToken = crypto.randomBytes(32).toString("hex");
-
-        // Hash and set to resetPasswordToken field
-        user.resetPasswordToken = crypto
-            .createHash("sha256")
-            .update(resetToken)
-            .digest("hex");
-
-        // Set expire (1 hour)
-        user.resetPasswordExpire = Date.now() + 60 * 60 * 1000;
-
+        user.resetPasswordToken = crypto.createHash("sha256").update(resetToken).digest("hex");
+        user.resetPasswordExpire = Date.now() + 60 * 60 * 1000; // 1 hour
         await user.save();
 
-        // Create reset url
-        const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+        const resetUrl = `${process.env.FRONTEND_URL || "http://localhost:4200"}/reset-password/${resetToken}`;
 
         const html = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
-            <h2 style="color: #333; text-align: center;">Password Reset Request</h2>
-            <p>Hello ${user.name},</p>
-            <p>You are receiving this email because you (or someone else) has requested the reset of a password for your account on ApnaTution.</p>
-            <p>Please click the button below to reset your password. This link is valid for 1 hour.</p>
-            <div style="text-align: center; margin: 30px 0;">
-                <a href="${resetUrl}" style="background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Reset Password</a>
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px;">
+            <div style="text-align: center; margin-bottom: 24px;">
+                <h2 style="color: #2563eb; margin: 0;">ApnaTution</h2>
+                <p style="color: #64748b; font-size: 14px;">Password Reset Request</p>
             </div>
-            <p>If you did not request this, please ignore this email and your password will remain unchanged.</p>
-            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
-            <p style="font-size: 12px; color: #888; text-align: center;">ApnaTution - Your Trusted Tution Partner</p>
-        </div>
-        `;
+            <p style="color: #334155;">Hi ${user.name},</p>
+            <p style="color: #334155;">We received a request to reset your password. Click the button below to create a new password. This link is valid for <strong>1 hour</strong>.</p>
+            <div style="text-align: center; margin: 32px 0;">
+                <a href="${resetUrl}" style="background: linear-gradient(135deg, #2563eb, #7c3aed); color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; display: inline-block;">
+                    Reset Password
+                </a>
+            </div>
+            <p style="color: #64748b; font-size: 14px;">If you didn't request this, you can safely ignore this email. Your password will remain unchanged.</p>
+            <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;">
+            <p style="color: #94a3b8; font-size: 12px; text-align: center;">ApnaTution — Your Trusted Tuition Partner</p>
+        </div>`;
 
         try {
-            await sendEmail({
-                email: user.email,
-                subject: "Password Reset Request - ApnaTution",
-                html: html
-            });
-
-            res.status(200).json({ success: true, message: "Email sent" });
-        } catch (err) {
-            console.error("Email send error:", err);
+            await sendEmail({ email: user.email, subject: "Reset Your ApnaTution Password", html });
+            res.status(200).json({ message: "If this email is registered, a reset link has been sent." });
+        } catch (emailErr) {
+            console.error("Email Error:", emailErr);
             user.resetPasswordToken = undefined;
             user.resetPasswordExpire = undefined;
             await user.save();
-            return res.status(500).json({ message: "Email could not be sent" });
+            res.status(500).json({ message: "Could not send reset email. Please try again later." });
         }
     } catch (err) {
-        console.error("Forgot Password Error:", err);
-        res.status(500).json({ message: "Forgot Password Error" });
+        console.error("ForgotPassword Error:", err);
+        res.status(500).json({ message: "Request failed. Please try again." });
     }
 };
 
-
 exports.resetPassword = async (req, res) => {
     try {
-        // Get hashed token
+        const { password } = req.body;
+        if (!password || password.length < 6) {
+            return res.status(400).json({ message: "Password must be at least 6 characters" });
+        }
+
         const resetPasswordToken = crypto
             .createHash("sha256")
             .update(req.params.resetToken)
@@ -167,18 +210,17 @@ exports.resetPassword = async (req, res) => {
         });
 
         if (!user) {
-            return res.status(400).json({ message: "Invalid token" });
+            return res.status(400).json({ message: "Invalid or expired reset link. Please request a new one." });
         }
 
-        // Set new password
-        user.password = await bcrypt.hash(req.body.password, 10);
+        user.password = await bcrypt.hash(password, 10);
         user.resetPasswordToken = undefined;
         user.resetPasswordExpire = undefined;
-
         await user.save();
 
-        res.status(200).json({ success: true, data: "Password updated" });
+        res.status(200).json({ message: "Password updated successfully. Please login." });
     } catch (err) {
-        res.status(500).json({ message: "Reset Password Error" });
+        console.error("ResetPassword Error:", err);
+        res.status(500).json({ message: "Password reset failed. Please try again." });
     }
 };
