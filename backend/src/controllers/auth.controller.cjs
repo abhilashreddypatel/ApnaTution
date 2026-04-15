@@ -114,7 +114,7 @@ exports.getProfile = async (req, res) => {
 exports.updateProfile = async (req, res) => {
     try {
         // Prevent changing sensitive fields via this endpoint
-        const { role, email, password, resetPasswordToken, resetPasswordExpire, ...updateData } = req.body;
+        const { role, email, password, points, resetPasswordToken, resetPasswordExpire, ...updateData } = req.body;
 
         // Clean subjects if provided
         if (updateData.subjects) {

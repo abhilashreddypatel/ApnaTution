@@ -1,13 +1,20 @@
 // Server Entry Point
 require('dotenv').config();
 const app = require('./app.cjs');
+const connectDB = require('./config/db.cjs');
+const { expireOldLeads } = require('./controllers/lead.controller.cjs');
 
 const PORT = process.env.PORT || 5000;
 
 // Only listen if not in a serverless environment (like Vercel)
 if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
-    app.listen(PORT, () => {
+    app.listen(PORT, async () => {
         console.log(`Server running on port ${PORT}`);
+
+        // Run expiry job immediately on startup, then once every 24 h
+        await connectDB();
+        expireOldLeads().catch(console.error);
+        setInterval(() => expireOldLeads().catch(console.error), 24 * 60 * 60 * 1000);
     });
 }
 

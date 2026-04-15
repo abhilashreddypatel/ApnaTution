@@ -5,6 +5,9 @@
         @if ((role$ | async) !== 'TUTOR') {
             <a routerLink="/find-tutors" routerLinkActive="active">Find Tutors</a>
         }
+        @if ((role$ | async) !== 'PARENT') {
+            <a routerLink="/find-students" routerLinkActive="active">Find Students</a>
+        }
 
         @if (isLoggedIn$ | async) {
             @if ((role$ | async) === 'PARENT') {

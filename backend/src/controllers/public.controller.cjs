@@ -37,7 +37,7 @@ exports.getPublicLeads = async (req, res) => {
         const leads = await TuitionLead.find({ status: 'OPEN' })
             .select("title subjects classLevel mode budgetRange location createdAt")
             .sort({ createdAt: -1 })
-            .limit(10);
+            .limit(50);
         res.json(leads);
     } catch (err) {
         console.error("Get Public Leads Error:", err);

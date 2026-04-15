@@ -8,6 +8,8 @@ const Transaction = require("../models/Transaction.model.cjs");
 // Validate MongoDB ObjectId
 const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
+const OPEN_LEAD_CAP = 5;
+
 // Parent: create a new lead
 exports.createLead = async (req, res) => {
     try {
@@ -18,6 +20,14 @@ exports.createLead = async (req, res) => {
         }
         if (!Array.isArray(subjects) || subjects.length === 0) {
             return res.status(400).json({ message: "subjects must be a non-empty array" });
+        }
+
+        // Spam protection: cap open leads per parent
+        const openCount = await TuitionLead.countDocuments({ parentId: req.user.id, status: "OPEN" });
+        if (openCount >= OPEN_LEAD_CAP) {
+            return res.status(429).json({
+                message: `You already have ${OPEN_LEAD_CAP} open leads. Please close some before creating new ones.`
+            });
         }
 
         const lead = await TuitionLead.create({
@@ -145,17 +155,18 @@ exports.unlockLead = async (req, res) => {
             });
         }
 
-        const tutor = await User.findById(tutorId);
-        if (!tutor || tutor.points < 1) {
+        // Atomically deduct 1 point — only succeeds if points >= 1 (prevents race condition)
+        const tutor = await User.findOneAndUpdate(
+            { _id: tutorId, points: { $gte: 1 } },
+            { $inc: { points: -1 } },
+            { new: true }
+        );
+        if (!tutor) {
             return res.status(403).json({
                 message: "Insufficient points. Please buy a plan to continue.",
                 code: "INSUFFICIENT_POINTS"
             });
         }
-
-        // Deduct point
-        tutor.points -= 1;
-        await tutor.save();
 
         // Record unlock
         await LeadUnlock.create({ tutorId, leadId, price: 1 });
@@ -264,4 +275,15 @@ exports.getLeadById = async (req, res) => {
         console.error("GetLeadById Error:", err);
         res.status(500).json({ message: "Failed to fetch lead" });
     }
+};
+
+// Cron: auto-close leads older than 30 days
+exports.expireOldLeads = async () => {
+    const cutoff = new Date(Date.now() - 365 * 30 * 24 * 60 * 60 * 1000);
+    const result = await TuitionLead.updateMany(
+        { status: "OPEN", createdAt: { $lt: cutoff } },
+        { $set: { status: "CLOSED" } }
+    );
+    console.log(`[expireOldLeads] Closed ${result.modifiedCount} expired lead(s).`);
+    return result.modifiedCount;
 };

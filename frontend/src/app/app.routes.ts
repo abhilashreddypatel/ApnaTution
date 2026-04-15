@@ -15,6 +15,7 @@ import { Landing } from './landing/landing';
 export const routes: Routes = [
     { path: '', component: Landing },
     { path: 'find-tutors', loadComponent: () => import('./public/find-tutors/find-tutors').then(m => m.FindTutors) },
+    { path: 'find-students', loadComponent: () => import('./public/find-students/find-students').then(m => m.FindStudentsComponent) },
     { path: 'dashboard', canActivate: [AuthGuard], loadComponent: () => import('./shared/dashboard/dashboard.component').then(m => m.DashboardComponent) },
     { path: 'login', component: LoginComponent },
     { path: 'register', component: RegisterComponent },

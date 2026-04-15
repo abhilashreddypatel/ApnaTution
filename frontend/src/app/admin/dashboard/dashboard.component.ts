@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AdminService } from '../../core/services/admin.service';
 
@@ -12,7 +12,7 @@ import { AdminService } from '../../core/services/admin.service';
 export class AdminDashboardComponent implements OnInit {
     stats: any = null;
 
-    constructor(private adminService: AdminService) { }
+    constructor(private adminService: AdminService, private cdr: ChangeDetectorRef) { }
 
     ngOnInit() {
         this.loadStats();
@@ -20,7 +20,7 @@ export class AdminDashboardComponent implements OnInit {
 
     loadStats() {
         this.adminService.getStats().subscribe({
-            next: (data) => this.stats = data,
+            next: (data) => { this.stats = data; this.cdr.detectChanges(); },
             error: (err) => console.error('Failed to load stats', err)
         });
     }

@@ -1,6 +1,8 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
+const mongoSanitize = require("express-mongo-sanitize");
 const connectDB = require("./config/db.cjs");
 const { seedPlans } = require("./controllers/payment.controller.cjs");
 
@@ -14,6 +16,9 @@ const allowedOrigins = [
     "https://apnatution.vercel.app",
     process.env.FRONTEND_URL,
 ].filter(Boolean);
+
+app.use(helmet());
+app.use(mongoSanitize());
 
 app.use(cors({
     origin: (origin, callback) => {

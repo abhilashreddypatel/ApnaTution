@@ -1,9 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../core/services/auth.service';
 import { HttpClient } from '@angular/common/http';
 import { API_CONFIG } from '../core/api.config';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-landing',
@@ -20,7 +21,7 @@ export class Landing implements OnInit {
   tutors: any[] = [];
   activeTab: 'PARENT' | 'TUTOR' = 'PARENT';
 
-  constructor(private authService: AuthService, private http: HttpClient) {}
+  constructor(private authService: AuthService, private http: HttpClient,private cdr:ChangeDetectorRef) {}
 
   ngOnInit() {
     this.authService.user$.subscribe(user => {
@@ -29,24 +30,27 @@ export class Landing implements OnInit {
       this.userName = user?.name ?? '';
     });
     this.fetchPublicData();
+
   }
 
-  fetchPublicData() {
-    this.http.get<any>(`${API_CONFIG.baseUrl}/public/stats`).subscribe({
-      next: (data) => this.stats = data,
-      error: () => {}
-    });
 
-    this.http.get<any[]>(`${API_CONFIG.baseUrl}/public/leads`).subscribe({
-      next: (data) => this.leads = data,
-      error: () => {}
-    });
-
-    this.http.get<any[]>(`${API_CONFIG.baseUrl}/public/tutors`).subscribe({
-      next: (data) => this.tutors = data.slice(0, 3),
-      error: () => {}
-    });
-  }
+fetchPublicData() {
+  forkJoin({
+    stats: this.http.get<any>(`${API_CONFIG.baseUrl}/public/stats`),
+    leads: this.http.get<any[]>(`${API_CONFIG.baseUrl}/public/leads`),
+    tutors: this.http.get<any[]>(`${API_CONFIG.baseUrl}/public/tutors`)
+  }).subscribe({
+    next: ({ stats, leads, tutors }) => {
+      this.stats = stats;
+      this.leads = leads ?? [];
+      this.tutors = (tutors ?? []).slice(0, 3);
+      this.cdr.detectChanges();
+    },
+    error: (err) => {
+      console.error("Public data fetch failed", err);
+    }
+  });
+}
 
   get dashboardLink(): string {
     return this.userRole ? '/dashboard' : '/login';
