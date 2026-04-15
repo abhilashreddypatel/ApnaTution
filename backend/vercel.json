@@ -11,5 +11,11 @@
             "src": "/(.*)",
             "dest": "api/index.js"
         }
+    ],
+    "crons": [
+        {
+            "path": "/admin/cron/expire-leads",
+            "schedule": "0 0 * * *"
+        }
     ]
 }

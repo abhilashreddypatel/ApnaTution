@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -24,16 +24,17 @@ export class BuyPointsComponent implements OnInit {
     constructor(
         private paymentService: PaymentService,
         private authService: AuthService,
-        private router: Router
+        private router: Router,
+        private cdr: ChangeDetectorRef
     ) {}
 
     ngOnInit(): void {
         this.paymentService.getPlans().subscribe({
-            next: (data) => this.plans = data,
+            next: (data) => { this.plans = data; this.cdr.detectChanges(); },
             error: () => {}
         });
         this.authService.getProfile().subscribe({
-            next: (user) => this.currentPoints = user.points || 0,
+            next: (user) => { this.currentPoints = user.points || 0; this.cdr.detectChanges(); },
             error: () => {}
         });
     }
@@ -43,10 +44,12 @@ export class BuyPointsComponent implements OnInit {
         this.paymentService.validateCoupon(this.couponCode).subscribe({
             next: (res) => {
                 this.discountMessage = `Coupon applied! ${res.discountPercentage}% discount`;
+                this.cdr.detectChanges();
             },
             error: (err) => {
                 this.discountMessage = err.error?.message || 'Invalid or expired coupon';
                 this.couponCode = '';
+                this.cdr.detectChanges();
             }
         });
     }
@@ -57,6 +60,7 @@ export class BuyPointsComponent implements OnInit {
             next: (order) => this.initiateRazorpay(order),
             error: () => {
                 this.loading = false;
+                this.cdr.detectChanges();
             }
         });
     }
@@ -104,10 +108,12 @@ export class BuyPointsComponent implements OnInit {
             next: (res) => {
                 this.currentPoints = res.points;
                 this.loading = false;
+                this.cdr.detectChanges();
                 this.router.navigate(['/tutor/leads']);
             },
             error: () => {
                 this.loading = false;
+                this.cdr.detectChanges();
             }
         });
     }

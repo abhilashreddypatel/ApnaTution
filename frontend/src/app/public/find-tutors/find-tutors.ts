@@ -4,6 +4,7 @@ import { RouterLink, Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { AuthService } from '../../core/services/auth.service';
 import { API_CONFIG } from '../../core/api.config';
+import { ChangeDetectorRef } from '@angular/core';
 
 @Component({
   selector: 'app-find-tutors',
@@ -21,7 +22,8 @@ export class FindTutors implements OnInit {
   constructor(
     private http: HttpClient,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private cdr:ChangeDetectorRef,
   ) {}
 
   ngOnInit() {
@@ -34,7 +36,8 @@ export class FindTutors implements OnInit {
         this.tutors = data;
         this.filteredTutors = [...data];
         this.loading = false;
-      },
+        this.cdr.detectChanges();
+        },
       error: () => {
         this.loading = false;
       }

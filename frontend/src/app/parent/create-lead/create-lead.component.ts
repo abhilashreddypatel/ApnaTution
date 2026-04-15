@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router, ActivatedRoute, RouterLink } from '@angular/router';
@@ -23,7 +23,8 @@ export class CreateLeadComponent implements OnInit {
         private fb: FormBuilder,
         private leadService: LeadService,
         private router: Router,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        private cdr: ChangeDetectorRef
     ) {
         this.leadForm = this.fb.group({
             title:       ['', Validators.required],
@@ -51,6 +52,7 @@ export class CreateLeadComponent implements OnInit {
                 const subjectsStr = Array.isArray(lead.subjects) ? lead.subjects.join(', ') : (lead.subjects || '');
                 this.leadForm.patchValue({ ...lead, subjects: subjectsStr });
                 this.loading = false;
+                this.cdr.markForCheck();    
             },
             error: (err) => {
                 this.loading = false;

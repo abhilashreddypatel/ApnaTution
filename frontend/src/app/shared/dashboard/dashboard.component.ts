@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { DashboardService } from '../../core/services/dashboard.service';
@@ -21,7 +21,8 @@ export class DashboardComponent implements OnInit {
     constructor(
         private authService: AuthService,
         private dashboardService: DashboardService,
-        private adminService: AdminService
+        private adminService: AdminService,
+        private cdr : ChangeDetectorRef
     ) {}
 
     ngOnInit() {
@@ -37,7 +38,10 @@ export class DashboardComponent implements OnInit {
     loadDashboardData() {
         this.loading = true;
 
-        const done = (data: any) => { this.stats = data; this.loading = false; };
+        const done = (data: any) => { this.stats = data; 
+            this.loading = false;
+            this.cdr.detectChanges();
+         };
         const fail = ()          => { this.loading = false; };
 
         if (this.userRole === 'PARENT') {
@@ -47,6 +51,7 @@ export class DashboardComponent implements OnInit {
         } else if (this.userRole === 'ADMIN') {
             this.adminService.getStats().subscribe({ next: done, error: fail });
         }
+                this.cdr.detectChanges();
     }
 
     logout() {

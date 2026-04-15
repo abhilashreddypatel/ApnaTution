@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { LeadService } from '../../core/services/lead.service';
@@ -18,7 +18,7 @@ export class LeadListComponent implements OnInit {
     unlockingId: string | null = null;
     toast: { message: string; type: 'success' | 'error' | 'info' } | null = null;
 
-    constructor(private leadService: LeadService, private router: Router) {}
+    constructor(private leadService: LeadService, private router: Router, private cdr: ChangeDetectorRef) {}
 
     ngOnInit() {
         this.loadLeads();
@@ -31,10 +31,12 @@ export class LeadListComponent implements OnInit {
                 this.allLeads = data;
                 this.filteredLeads = [...data];
                 this.loadingLeads = false;
+                this.cdr.detectChanges();
             },
             error: () => {
                 this.loadingLeads = false;
                 this.showToast('Failed to load leads. Please refresh.', 'error');
+                this.cdr.detectChanges();
             }
         });
     }
@@ -81,6 +83,7 @@ export class LeadListComponent implements OnInit {
                 lead.parentContact = res.parentContact;
                 this.unlockingId = null;
                 this.showToast(res.message || 'Lead unlocked! Parent contact revealed.', 'success');
+                this.cdr.detectChanges();
             },
             error: (err) => {
                 this.unlockingId = null;
@@ -95,6 +98,7 @@ export class LeadListComponent implements OnInit {
                 } else {
                     this.showToast(err.error?.message || 'Unlock failed. Please try again.', 'error');
                 }
+                this.cdr.detectChanges();
             }
         });
     }

@@ -56,7 +56,7 @@
                 <p>Try adjusting your filters or check back later.</p>
             </div>
         }
-
+@if (!loading && filteredTutors.length > 0) {
         <div class="tutor-grid">
             @for (tutor of filteredTutors; track tutor._id) {
                 <div class="tutor-card animate-fade-in">
@@ -112,5 +112,6 @@
                 </div>
             }
         </div>
+    }
     </main>
 </div>

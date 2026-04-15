@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
@@ -17,7 +17,8 @@ export class ProfileComponent implements OnInit {
     userRole: string | null = null;
     toast: { message: string; type: 'success' | 'error' } | null = null;
 
-    constructor(private fb: FormBuilder, private authService: AuthService) {
+    constructor(private fb: FormBuilder, private authService: AuthService , private cdr: ChangeDetectorRef
+    ) {
         this.profileForm = this.fb.group({
             name:       ['', [Validators.required, Validators.minLength(2)]],
             email:      [{ value: '', disabled: true }],
@@ -46,6 +47,7 @@ export class ProfileComponent implements OnInit {
                 const subjectsStr = Array.isArray(user.subjects) ? user.subjects.join(', ') : (user.subjects || '');
                 this.profileForm.patchValue({ ...user, subjects: subjectsStr });
                 this.loading = false;
+                this.cdr.markForCheck();        
             },
             error: () => {
                 this.loading = false;
