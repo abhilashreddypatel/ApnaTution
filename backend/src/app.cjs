@@ -35,6 +35,11 @@ app.use(cors({
 app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true }));
 
+// Health check (before DB middleware so it always responds)
+app.get("/health", (req, res) => {
+    res.json({ status: "UP", timestamp: new Date().toISOString() });
+});
+
 // DB + Seed middleware (serverless safe - reuses connection)
 let seeded = false;
 app.use(async (req, res, next) => {
@@ -46,17 +51,13 @@ app.use(async (req, res, next) => {
         }
         next();
     } catch (err) {
-        console.error("Startup Error:", err.message);
+        console.error("Startup Error:", err.name, "-", err.message);
         res.status(500).json({
             message: "Service temporarily unavailable",
-            tip: "Check MongoDB Atlas IP Whitelist and environment variables."
+            error: err.message,
+            tip: "Check MONGO_URI environment variable in Vercel settings."
         });
     }
-});
-
-// Health check
-app.get("/health", (req, res) => {
-    res.json({ status: "UP", timestamp: new Date().toISOString() });
 });
 
 // Routes
