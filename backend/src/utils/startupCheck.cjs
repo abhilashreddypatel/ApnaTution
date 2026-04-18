@@ -75,7 +75,7 @@ async function runStartupCheck(port) {
 
     console.log("");
     console.log(C.bold + C.cyan + "╔" + "═".repeat(W) + "╗" + C.reset);
-    console.log(C.bold + C.cyan + "║" + pad("  ApnaTution Backend — API Status", W) + "║" + C.reset);
+    console.log(C.bold + C.cyan + "║" + pad("  ApnaTutors Backend — API Status", W) + "║" + C.reset);
     console.log(C.bold + C.cyan + "╚" + "═".repeat(W) + "╝" + C.reset);
     console.log(`  ${C.bold}URL:${C.reset}  http://localhost:${port}`);
     console.log(`  ${C.bold}Mode:${C.reset} ${process.env.NODE_ENV || "development"}`);

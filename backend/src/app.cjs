@@ -35,11 +35,13 @@ const allowedOrigins = [
     "http://localhost:3000",
     "https://apna-tution.vercel.app",
     "https://apnatution.vercel.app",
+    "https://apnatutors.vercel.app",
+    "https://apnatutors-frontend.vercel.app",
     process.env.FRONTEND_URL,
 ].filter(Boolean);
 
-// Matches Vercel preview URLs for this project: apna-tution-frontend-*.vercel.app
-const vercelPreviewPattern = /^https:\/\/apna-tution-frontend(-[a-z0-9-]+)?\.vercel\.app$/;
+// Matches Vercel preview URLs for this project.
+const vercelPreviewPattern = /^https:\/\/(?:apna-tution-frontend|apnatutors|apnatutors-frontend)(-[a-z0-9-]+)?\.vercel\.app$/;
 
 app.use(helmet());
 app.use((req, _res, next) => { sanitizeMongo(req.body); sanitizeMongo(req.params); next(); });

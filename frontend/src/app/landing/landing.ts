@@ -65,7 +65,7 @@ export class Landing implements OnInit {
       role:    'Tutor, Mumbai',
       avatar:  'RV',
       rating:  5,
-      text:    'I\'ve been using ApnaTution for 6 months now. It\'s by far the best platform to find genuine students. Worth every point I spend!',
+      text:    'I\'ve been using ApnaTutors for 6 months now. It\'s by far the best platform to find genuine students. Worth every point I spend!',
     },
     {
       name:    'Ananya Singh',

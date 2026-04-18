@@ -95,7 +95,7 @@ function buildDashboardHtml(port) {
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
-  <title>ApnaTution API Dashboard</title>
+  <title>ApnaTutors API Dashboard</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body   { background: #0f172a; color: #e2e8f0; font-family: -apple-system, BlinkMacSystemFont,
@@ -118,7 +118,7 @@ function buildDashboardHtml(port) {
     <!-- Header -->
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;">
       <div>
-        <h1>ApnaTution <span style="color:#60a5fa;">API</span> Dashboard</h1>
+        <h1>ApnaTutors <span style="color:#60a5fa;">API</span> Dashboard</h1>
         <p style="color:#64748b;font-size:13px;margin-top:4px;">
           Local dev server &mdash;
           <a href="http://localhost:${port}/health">/health</a> &nbsp;|&nbsp;
