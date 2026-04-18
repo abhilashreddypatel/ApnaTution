@@ -1,7 +1,7 @@
 {
     "/api": {
-        "target": "https://apna-tution-backend.vercel.app",
-        "secure": true,
+        "target": "http://localhost:5000",
+        "secure": false,
         "pathRewrite": {
             "^/api": ""
         },
