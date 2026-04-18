@@ -37,6 +37,11 @@ const allowedOrigins = [
     "https://apnatution.vercel.app",
     "https://apnatutors.vercel.app",
     "https://apnatutors-frontend.vercel.app",
+    "https://apnatutors.com",
+    "https://www.apnatutors.com",
+    "https://apnatution.com",
+    "https://www.apnatution.com",
+    // Optional: set `FRONTEND_URL` in Vercel/env to allow an additional custom origin.
     process.env.FRONTEND_URL,
 ].filter(Boolean);
 
@@ -46,7 +51,7 @@ const vercelPreviewPattern = /^https:\/\/(?:apna-tution-frontend|apnatutors|apna
 app.use(helmet());
 app.use((req, _res, next) => { sanitizeMongo(req.body); sanitizeMongo(req.params); next(); });
 
-app.use(cors({
+const corsOptions = {
     origin: (origin, callback) => {
         // Allow requests with no origin (mobile apps, Postman, curl)
         if (!origin) return callback(null, true);
@@ -57,8 +62,12 @@ app.use(cors({
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"]
-}));
+    allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+};
+
+// Ensure preflight requests always get a successful response (especially important on serverless)
+app.options("*", cors(corsOptions));
+app.use(cors(corsOptions));
 
 app.use(express.json({ limit: "10kb" }));
 app.use(express.urlencoded({ extended: true }));
