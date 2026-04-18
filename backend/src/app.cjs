@@ -58,6 +58,7 @@ const corsOptions = {
         if (allowedOrigins.includes(origin) || vercelPreviewPattern.test(origin)) {
             return callback(null, true);
         }
+        console.warn("CORS blocked for origin:", origin);
         return callback(null, false);
     },
     credentials: true,
@@ -66,7 +67,8 @@ const corsOptions = {
 };
 
 // Ensure preflight requests always get a successful response (especially important on serverless)
-app.options("*", cors(corsOptions));
+// Express v5/path-to-regexp does not accept "*" string routes; use a RegExp to match all paths.
+app.options(/.*/, cors(corsOptions));
 app.use(cors(corsOptions));
 
 app.use(express.json({ limit: "10kb" }));
