@@ -174,12 +174,18 @@
   <!-- ══════════════════════════════════════════════════════
        POPULAR SUBJECTS
        ══════════════════════════════════════════════════════ -->
+  @if (userRole !== 'TUTOR') {
   <section class="section bg-white">
     <div class="container">
       <div class="section-header">
         <div class="section-tag">Popular Subjects</div>
-        <h2>What do you want to learn?</h2>
-        <p>From school boards to competitive exams — we have tutors for every need.</p>
+        @if (userRole === 'PARENT') {
+          <h2>What do you want to learn?</h2>
+          <p>From school boards to competitive exams — we have tutors for every need.</p>
+        } @else {
+          <h2>Explore Subjects & Find Tutors</h2>
+          <p>Browse tutors by subject — from school boards to competitive exam prep.</p>
+        }
       </div>
       <div class="subjects-grid">
         @for (subj of popularSubjects; track subj.name) {
@@ -193,7 +199,7 @@
       </div>
     </div>
   </section>
-
+  }
   <!-- ══════════════════════════════════════════════════════
        HOW IT WORKS
        ══════════════════════════════════════════════════════ -->
@@ -201,18 +207,28 @@
     <div class="container">
       <div class="section-header">
         <div class="section-tag">How It Works</div>
-        <h2>Simple steps to your perfect match</h2>
-        <p>ApnaTutors connects parents and tutors seamlessly in 3 easy steps.</p>
+        @if (userRole === 'PARENT') {
+          <h2>How to find your perfect tutor</h2>
+          <p>Post your requirement for free and let qualified tutors come to you — in 3 simple steps.</p>
+        } @else if (userRole === 'TUTOR') {
+          <h2>Start growing your tuition business</h2>
+          <p>Get connected with parents actively looking for tutors — no middlemen, just real leads.</p>
+        } @else {
+          <h2>Simple steps to your perfect match</h2>
+          <p>ApnaTutors connects parents and tutors seamlessly in 3 easy steps.</p>
+        }
       </div>
 
-      <div class="tab-toggle">
-        <button class="tab-btn" [class.tab-active]="activeTab === 'PARENT'" (click)="setActiveTab('PARENT')">
-          <i class="fa-solid fa-users"></i> For Parents
-        </button>
-        <button class="tab-btn" [class.tab-active]="activeTab === 'TUTOR'"  (click)="setActiveTab('TUTOR')">
-          <i class="fa-solid fa-chalkboard-user"></i> For Tutors
-        </button>
-      </div>
+      @if (!userRole) {
+        <div class="tab-toggle">
+          <button class="tab-btn" [class.tab-active]="activeTab === 'PARENT'" (click)="setActiveTab('PARENT')">
+            <i class="fa-solid fa-users"></i> For Parents
+          </button>
+          <button class="tab-btn" [class.tab-active]="activeTab === 'TUTOR'"  (click)="setActiveTab('TUTOR')">
+            <i class="fa-solid fa-chalkboard-user"></i> For Tutors
+          </button>
+        </div>
+      }
 
       @if (activeTab === 'PARENT') {
         <div class="steps-row animate-fade-in">
@@ -367,12 +383,20 @@
     <div class="container">
       <div class="section-header">
         <div class="section-tag">Pan India</div>
-        <h2>Find Tutors in Your City</h2>
-        <p>We have tutors in every major city across India, for home and online sessions.</p>
+        @if (userRole === 'TUTOR') {
+          <h2>Cities with High Student Demand</h2>
+          <p>Leads pouring in from these cities every day — browse open requirements near you.</p>
+        } @else if (userRole === 'PARENT') {
+          <h2>Find Tutors in Your City</h2>
+          <p>We have top-rated tutors in every major city across India, for home and online sessions.</p>
+        } @else {
+          <h2>Find Tutors in Your City</h2>
+          <p>We have tutors in every major city across India, for home and online sessions.</p>
+        }
       </div>
       <div class="cities-grid">
         @for (city of topCities; track city.name) {
-          <button class="city-card" (click)="searchByCity(city.name)">
+          <button class="city-card" (click)="userRole === 'TUTOR' ? searchByCity(city.name) : searchByCity(city.name)">
             <div class="city-icon">
               <i class="fa-solid {{ city.icon }}"></i>
             </div>
@@ -390,40 +414,25 @@
     <div class="container">
       <div class="section-header">
         <div class="section-tag">Why Us</div>
-        <h2>Why Thousands Choose ApnaTutors</h2>
-        <p>We built the platform that parents and tutors actually deserve.</p>
+        @if (userRole === 'PARENT') {
+          <h2>Why Parents Trust ApnaTutors</h2>
+          <p>Everything you need to find the right tutor — without the hassle.</p>
+        } @else if (userRole === 'TUTOR') {
+          <h2>Why Tutors Grow with ApnaTutors</h2>
+          <p>The smartest way to find genuine students and build a sustainable teaching business.</p>
+        } @else {
+          <h2>Why Thousands Choose ApnaTutors</h2>
+          <p>We built the platform that parents and tutors actually deserve.</p>
+        }
       </div>
       <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon fi-blue"><i class="fa-solid fa-shield-halved"></i></div>
-          <h3>Verified Tutors</h3>
-          <p>Every tutor profile is reviewed for quality. You only connect with qualified educators.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon fi-green"><i class="fa-solid fa-rupee-sign"></i></div>
-          <h3>Free for Parents</h3>
-          <p>Post any requirement at zero cost. Tutors pay a small unlock fee — you never pay anything.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon fi-orange"><i class="fa-solid fa-bolt"></i></div>
-          <h3>Fast Connections</h3>
-          <p>No slow agencies or long waits. Tutors reach out directly within hours of your post.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon fi-purple"><i class="fa-solid fa-location-dot"></i></div>
-          <h3>Local or Online</h3>
-          <p>Choose home tuition nearby or online sessions from top tutors across India.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon fi-red"><i class="fa-solid fa-star"></i></div>
-          <h3>All Boards & Exams</h3>
-          <p>CBSE, ICSE, State Boards, IB, JEE, NEET, UPSC — we cover every curriculum and exam.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon fi-teal"><i class="fa-solid fa-lock"></i></div>
-          <h3>100% Privacy</h3>
-          <p>Parent contact details stay private until a tutor pays to unlock — no cold calls or spam.</p>
-        </div>
+        @for (f of featureCards; track f.title) {
+          <div class="feature-card">
+            <div class="feature-icon {{ f.cls }}"><i class="fa-solid {{ f.icon }}"></i></div>
+            <h3>{{ f.title }}</h3>
+            <p>{{ f.desc }}</p>
+          </div>
+        }
       </div>
     </div>
   </section>
@@ -435,28 +444,126 @@
     <div class="container">
       <div class="section-header">
         <div class="section-tag">Reviews</div>
-        <h2>Loved by Parents & Tutors</h2>
-        <p>Real stories from real people who found success on ApnaTutors.</p>
-      </div>
-      <div class="testimonials-grid">
-        @for (t of testimonials; track t.name) {
-          <div class="tcard animate-fade-in">
-            <div class="tcard-stars">
-              @for (i of [1,2,3,4,5]; track i) {
-                <i class="fa-solid fa-star"></i>
-              }
-            </div>
-            <p class="tcard-text">"{{ t.text }}"</p>
-            <div class="tcard-author">
-              <div class="tcard-avatar">{{ t.avatar }}</div>
-              <div>
-                <div class="tcard-name">{{ t.name }}</div>
-                <div class="tcard-role">{{ t.role }}</div>
-              </div>
-            </div>
-          </div>
+        @if (userRole === 'PARENT') {
+          <h2>What Parents Are Saying</h2>
+          <p>Families across India found their perfect tutor on ApnaTutors.</p>
+        } @else if (userRole === 'TUTOR') {
+          <h2>What Tutors Are Saying</h2>
+          <p>Educators growing their business every day with ApnaTutors leads.</p>
+        } @else {
+          <h2>Loved by Parents & Tutors</h2>
+          <p>Real stories from real people who found success on ApnaTutors.</p>
         }
       </div>
+
+      <!-- Slider wrapper -->
+      <div class="tslider"
+           (mouseenter)="pauseAutoPlay()"
+           (mouseleave)="resumeAutoPlay()">
+
+        <!-- Overflow viewport -->
+        <div class="tslider-viewport">
+          <div class="tslider-track"
+               [style.transform]="'translateX(-' + activeTestimonial * 100 + '%)'">
+            @for (t of testimonials; track t.name; let i = $index) {
+              <div class="tslide">
+                <div class="tslide-card" [class.tslide-card-active]="i === activeTestimonial">
+
+                  <!-- Role pill -->
+                  <span class="tslide-role-pill"
+                        [class.pill-tutor]="t.forRole === 'TUTOR'"
+                        [class.pill-parent]="t.forRole === 'PARENT'">
+                    @if (t.forRole === 'TUTOR') {
+                      <i class="fa-solid fa-chalkboard-user"></i> Tutor
+                    } @else {
+                      <i class="fa-solid fa-users"></i> Parent
+                    }
+                  </span>
+
+                  <!-- Decorative quote -->
+                  <div class="tslide-quote-icon">
+                    <i class="fa-solid fa-quote-left"></i>
+                  </div>
+
+                  <!-- Stars -->
+                  <div class="tslide-stars">
+                    @for (s of [1,2,3,4,5]; track s) {
+                      <i class="fa-solid fa-star"></i>
+                    }
+                    <span class="tslide-rating">5.0</span>
+                  </div>
+
+                  <!-- Quote text -->
+                  <p class="tslide-text">{{ t.text }}</p>
+
+                  <!-- Author -->
+                  <div class="tslide-divider"></div>
+                  <div class="tslide-author">
+                    <div class="tslide-avatar"
+                         [class.avatar-tutor]="t.forRole === 'TUTOR'">
+                      {{ t.avatar }}
+                    </div>
+                    <div class="tslide-author-info">
+                      <div class="tslide-name">{{ t.name }}</div>
+                      <div class="tslide-location">{{ t.role }}</div>
+                    </div>
+                    <div class="tslide-verified">
+                      <i class="fa-solid fa-circle-check"></i> Verified
+                    </div>
+                  </div>
+
+                  <!-- Progress bar -->
+                  <div class="tslide-progress">
+                    <div class="tslide-progress-bar"
+                         [style.width.%]="i === activeTestimonial ? progressWidth : 0">
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Prev / Next arrows -->
+        <button class="tslider-arrow tslider-prev" (click)="prevTestimonial()" aria-label="Previous">
+          <i class="fa-solid fa-chevron-left"></i>
+        </button>
+        <button class="tslider-arrow tslider-next" (click)="nextTestimonial()" aria-label="Next">
+          <i class="fa-solid fa-chevron-right"></i>
+        </button>
+      </div>
+
+      <!-- Author strip + dots -->
+      <div class="tslider-footer">
+        <div class="tauthor-strip">
+          @for (t of testimonials; track t.name; let i = $index) {
+            <button class="tauthor-thumb"
+                    [class.tauthor-active]="i === activeTestimonial"
+                    (click)="goToTestimonial(i)">
+              <div class="tauthor-av"
+                   [class.av-tutor]="t.forRole === 'TUTOR'">
+                {{ t.avatar }}
+              </div>
+              <div class="tauthor-meta">
+                <span class="tauthor-name">{{ t.name }}</span>
+                <span class="tauthor-loc">{{ t.role }}</span>
+              </div>
+            </button>
+          }
+        </div>
+
+        <div class="tslider-dots">
+          @for (t of testimonials; track t.name; let i = $index) {
+            <button class="tdot"
+                    [class.tdot-active]="i === activeTestimonial"
+                    (click)="goToTestimonial(i)"
+                    [attr.aria-label]="'Go to review ' + (i + 1)">
+            </button>
+          }
+        </div>
+      </div>
+
     </div>
   </section>
 
@@ -466,17 +573,50 @@
   <section class="cta-section">
     <div class="container">
       <div class="cta-box">
-        <div class="cta-badge"><i class="fa-solid fa-rocket"></i></div>
-        <h2>Ready to find your perfect tutor?</h2>
-        <p>Join 2,000+ families already learning smarter with ApnaTutors. It's free to get started.</p>
-        <div class="cta-actions">
-          <a routerLink="/register" class="btn btn-white btn-xl">
-            <i class="fa-solid fa-user-plus"></i> Sign Up for Free
-          </a>
-          <a routerLink="/find-tutors" class="btn btn-outline-white btn-xl">
-            <i class="fa-solid fa-search"></i> Browse Tutors
-          </a>
+        <div class="cta-badge">
+          @if (userRole === 'TUTOR') {
+            <i class="fa-solid fa-coins"></i>
+          } @else if (userRole === 'PARENT') {
+            <i class="fa-solid fa-clipboard-list"></i>
+          } @else {
+            <i class="fa-solid fa-rocket"></i>
+          }
         </div>
+
+        @if (userRole === 'PARENT') {
+          <h2>Looking for a tutor right now?</h2>
+          <p>Post your requirement in 2 minutes — completely free. Tutors will reach out directly.</p>
+          <div class="cta-actions">
+            <a routerLink="/parent/create-lead" class="btn btn-white btn-xl">
+              <i class="fa-solid fa-plus"></i> Post a Requirement
+            </a>
+            <a routerLink="/find-tutors" class="btn btn-outline-white btn-xl">
+              <i class="fa-solid fa-chalkboard-user"></i> Browse Tutors
+            </a>
+          </div>
+        } @else if (userRole === 'TUTOR') {
+          <h2>Ready to unlock your next student?</h2>
+          <p>Fresh leads are posted every day. Spend 1 point to connect directly with a parent.</p>
+          <div class="cta-actions">
+            <a routerLink="/tutor/leads" class="btn btn-white btn-xl">
+              <i class="fa-solid fa-search"></i> Browse Leads
+            </a>
+            <a routerLink="/tutor/buy-points" class="btn btn-outline-white btn-xl">
+              <i class="fa-solid fa-coins"></i> Buy Points
+            </a>
+          </div>
+        } @else {
+          <h2>Ready to find your perfect tutor?</h2>
+          <p>Join 2,000+ families already learning smarter with ApnaTutors. It's free to get started.</p>
+          <div class="cta-actions">
+            <a routerLink="/register" class="btn btn-white btn-xl">
+              <i class="fa-solid fa-user-plus"></i> Sign Up for Free
+            </a>
+            <a routerLink="/find-tutors" class="btn btn-outline-white btn-xl">
+              <i class="fa-solid fa-search"></i> Browse Tutors
+            </a>
+          </div>
+        }
       </div>
     </div>
   </section>
